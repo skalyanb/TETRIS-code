@@ -14,6 +14,7 @@
 #include <set>
 #include <utility>
 #include <string>
+#include <ctime>
 
 #include <algorithm>
 #include "GraphIO.h"
@@ -91,14 +92,23 @@ bool ComparatorByVerticesSeen (Estimates a,Estimates b)
     return (a.fraction_of_vertices_seen < b.fraction_of_vertices_seen);
 }
 
-// A structure to store percentage of the graph observed
+// A structure to store the details of vertices and edges observed during the algorithm
+struct ObservedGraphStats
+{
+    VertexIdx VerticesSeenInRandomWalk;
+    VertexIdx VerticesSeenAsNbors;
+    EdgeIdx EdgesSeenInRandomWalk;
+    EdgeIdx EdgesSeenAsNbors;
+};
+
+// A structure to store percentage of the graph observed over multiple runs
 struct ObservedPercentage
 {
     double vertices_seen_percentage;
     double edges_seen_percentage;
 };
 
-// A structure to store error in the estimates.
+// A structure to store error in the estimates over multiple runs
 struct ErrorStats
 {
     double mean_error_percentage;
@@ -107,7 +117,7 @@ struct ErrorStats
     double max_error_percentage;
 };
 
-EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params)
+EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::mt19937 mt)
 {
     // Get the number of vertices, number of edges, Initialize scaling to number of edges.
     VertexIdx n = cg->nVertices;
@@ -123,8 +133,8 @@ EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params)
     std::set<VertexIdx> visited_vertex_set;
 
     // Set up random number generator
-    std::random_device rd;
-    std::mt19937 mt(rd());
+    //std::random_device rd;
+    // std::mt19937 mt(rd());
 
     // Initialize a uniform distribution for generating seed vertices
     std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n-1);
@@ -139,6 +149,15 @@ EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params)
         for (EdgeIdx wL = 0; wL < walk_length; wL++) {
             VertexIdx deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent]; // degree of parent vertex
             // TODO assumption: deg_of_parent is non-zero, add boundary check
+            // If the degree of parent vertex is 0, then we attempt seed another vertex
+            // We continue this process for certain no of times before giving up and continuing with the run
+            int attempt = 0;
+            while (deg_of_parent == 0 && attempt < 1000) {
+                printf("BAd luck! Trying again %d\n",attempt);
+                parent = dist_seed_vertex(mt);
+                deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
+                attempt ++;
+            }
 
             // Take a step of the random walk
             std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
@@ -166,24 +185,27 @@ EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params)
 
             // The random walk proceeds with the vertex child
             parent = child;
+            // If {u,v} is an isolated edge, then we will stuck here: so find a different seed and continue from there
+            if (deg_of_child == 1 && deg_of_parent==1)
+                parent = dist_seed_vertex(mt);
         }
     }
 
     // Create return structure for this function.
     // The number of edges produced by the random walk is walk_length;
     EdgeStructCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
-    printf("Random walk: walk length = %lld ",walk_length);
-    printf("Edges Seen=%lu, Vertices Seen=%lu\n",visited_edge_set.size(),visited_vertex_set.size());
+//    printf("Random walk: walk length = %lld ",walk_length);
+//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",visited_edge_set.size(),visited_vertex_set.size());
 
     return returnEdgeCollection;
 }
 
-Estimates SampleByEdgeDegree(CGraph *cg, EdgeStructCollection &edge_collection, Parameters params)
+Estimates SampleByEdgeDegree(CGraph *cg, EdgeStructCollection &edge_collection, Parameters params, std::mt19937 mt)
 {
 
     // Set up random number generator
-    std::random_device rd;
-    std::mt19937 mt(rd());
+    //std::random_device rd;
+    //std::mt19937 mt(rd());
 
     // Collect the degrees of all the edges in a vector so that we can iterate over them
     // The iterator is useful in setting up the discrete_distribution to pick an edge
@@ -204,6 +226,12 @@ Estimates SampleByEdgeDegree(CGraph *cg, EdgeStructCollection &edge_collection, 
     EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
     double  X=0, Y=0, Z=0, scaling = edge_collection.no_of_edges;
     Count raw_count = 0; // TODO remove, does not have any purpose
+
+    // Stats about the algorithm: how many new distinct vertices and edges are
+    // seen during neighbor sampling process
+    ObservedGraphStats obs_graph_stats = {};
+    obs_graph_stats.VerticesSeenInRandomWalk = edge_collection.visited_vertex_set.size();
+    obs_graph_stats.EdgesSeenInRandomWalk = edge_collection.visited_edge_set.size();
 
     for (EdgeIdx i=0; i< params.subsample_size; i++) {
 
@@ -238,19 +266,25 @@ Estimates SampleByEdgeDegree(CGraph *cg, EdgeStructCollection &edge_collection, 
     X = Y / params.subsample_size;
     double sum_degree_estimate =  (cg->nEdges/2.0) * sum_of_degree / edge_collection.no_of_edges;
     X = sum_degree_estimate * X;
-    // Create return object
-    double vertex_fraction = edge_collection.visited_vertex_set.size()*100.0/cg->nVertices;
-    double edge_fraction = edge_collection.visited_edge_set.size()*100.0/m;
-    Estimates return_estimate = {X,vertex_fraction,edge_fraction};
-    printf("**** Sample weighted *****\n");
-    printf("Sum of degree estimate = %lf,actual edges = %lld, err =%lf\n",
-           sum_degree_estimate,cg->nEdges,std::abs(sum_degree_estimate-cg->nEdges)*100/cg->nEdges);
-    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
-    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
+    // Create return object and store relevant stats
+    Estimates return_estimate ={};
+    return_estimate.triangle_estimate = X;
+    return_estimate.fraction_of_vertices_seen = edge_collection.visited_vertex_set.size()*100.0/cg->nVertices;
+    return_estimate.fraction_of_edges_seen = edge_collection.visited_edge_set.size()*100.0/m;
+
+    // Some other stats about the algorithm TODO decide what to do with them
+    obs_graph_stats.VerticesSeenAsNbors = edge_collection.visited_vertex_set.size() - obs_graph_stats.VerticesSeenInRandomWalk;
+    obs_graph_stats.EdgesSeenAsNbors = edge_collection.visited_edge_set.size() - obs_graph_stats.EdgesSeenInRandomWalk;
+
+//    printf("**** Sample weighted *****\n");
+//    printf("Sum of degree estimate = %lf,actual edges = %lld, err =%lf\n",
+//           sum_degree_estimate,cg->nEdges,std::abs(sum_degree_estimate-cg->nEdges)*100/cg->nEdges);
+//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
+//    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
     return return_estimate;
 }
 
-Estimates SampleAllEdges(CGraph *cg, EdgeStructCollection &edge_collection)
+Estimates SampleAllEdges(CGraph *cg, EdgeStructCollection &edge_collection, std::mt19937 mt)
 {
 
     // Retrieve relevant information from the edge_collection structure
@@ -259,14 +293,19 @@ Estimates SampleAllEdges(CGraph *cg, EdgeStructCollection &edge_collection)
     EdgeIdx no_of_edges = edge_collection.no_of_edges;
 
     // Set up random number generator
-    std::random_device rd;
-    std::mt19937 mt(rd());
+    //std::random_device rd;
+    //std::mt19937 mt(rd());
 
     // Variables used for estimating the triangle count
     EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
     double  X=0, Y=0, Z=0, scaling = m/2;
     Count raw_count = 0; // TODO remove, does not have any purpose
 
+    // Stats about the algorithm: how many new distinct vertices and edges are
+    // seen during neighbor sampling process
+    ObservedGraphStats obs_graph_stats = {};
+    obs_graph_stats.VerticesSeenInRandomWalk = edge_collection.visited_vertex_set.size();
+    obs_graph_stats.EdgesSeenInRandomWalk = edge_collection.visited_edge_set.size();
 
     for (EdgeIdx i = 0; i< no_of_edges; i++) {
         // e = (u,v) is the current with u being the lower degree end-point
@@ -296,13 +335,18 @@ Estimates SampleAllEdges(CGraph *cg, EdgeStructCollection &edge_collection)
         Y += scaling * Z;
     }
     X = Y * 1.0 / no_of_edges;
-    // Create return object
-    double vertex_fraction = edge_collection.visited_vertex_set.size()*100.0/cg->nVertices;
-    double edge_fraction = edge_collection.visited_edge_set.size()*100.0/m;
-    Estimates return_estimate = {X,vertex_fraction,edge_fraction};
-    printf("**** Sample all *****\n");
-    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
-    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
+    // Create return object and store relevant stats
+    Estimates return_estimate ={};
+    return_estimate.triangle_estimate = X;
+    return_estimate.fraction_of_vertices_seen = edge_collection.visited_vertex_set.size()*100.0/cg->nVertices;
+    return_estimate.fraction_of_edges_seen = edge_collection.visited_edge_set.size()*100.0/m;
+
+    // Some other stats about the algorithm TODO decide what to do with them
+    obs_graph_stats.VerticesSeenAsNbors = edge_collection.visited_vertex_set.size() - obs_graph_stats.VerticesSeenInRandomWalk;
+    obs_graph_stats.EdgesSeenAsNbors = edge_collection.visited_edge_set.size() - obs_graph_stats.EdgesSeenInRandomWalk;
+//    printf("**** Sample all *****\n");
+//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
+//    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
     return return_estimate;
 }
 
@@ -310,8 +354,15 @@ Estimates EstimateTrianglesByWeightedSampling(CGraph *cg, Parameters params)
 {
     Estimates output;
     EdgeStructCollection randomEdgeCollection;
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params);
-    output = SampleByEdgeDegree(cg, randomEdgeCollection, params);
+
+    // Set up random number generator
+    std::random_device rd;
+    // Using this random number generator initializize a PRNG: this PRNG is passed along to
+    // draw an element from various distribution
+    std::mt19937 mt(rd());
+
+    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
+    output = SampleByEdgeDegree(cg, randomEdgeCollection, params, mt);
     return output;
 }
 
@@ -319,8 +370,15 @@ Estimates EstimateTrianglesBySimpleSampling( CGraph *cg, Parameters params)
 {
     Estimates output;
     EdgeStructCollection randomEdgeCollection;
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params);
-    output = SampleAllEdges(cg, randomEdgeCollection);
+
+    // Set up random number generator
+    std::random_device rd;
+    // Using this random number generator initializize a PRNG: this PRNG is passed along to
+    // draw an element from various distribution
+    std::mt19937 mt(rd());
+
+    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
+    output = SampleAllEdges(cg, randomEdgeCollection, mt);
     return output;
 }
 
@@ -368,75 +426,81 @@ ObservedPercentage GetObservedPercentage (std::vector<Estimates> algo_estimates)
     ObservedPercentage output = {vertices_seen_percentage,edges_seen_percentage};
     return output;
 }
-void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count)
+// TODO use c++ file buffer here
+void WriteHeaderInOutput(FILE* f, std::string filename, CGraph* cg, Count triangle_count)
 {
-    // The entire process will be repeated no_of_repeat times and the output for
-    // all the runs are stored in a vector
-    Count no_of_repeat = params.no_of_repeat;
+    fprintf(f,"#Filename = %s \n",filename.c_str());
+    fprintf(f,"########################\n");
+    fprintf(f,"#Graph Properties\n");
+    fprintf(f,"########################\n");
+    fprintf(f,"# no of vertices, no of edges, no of triangles\n");
+    fprintf(f,"%lld,%lld,%lld\n\n",cg->nVertices,cg->nEdges,triangle_count);
+}
+void WriteAlgorithmOutput(FILE* f, std::string algo_name, Parameters params,
+        ErrorStats error_stats, ObservedPercentage obs_stats)
+{
+    fprintf(f,"########################\n");
+    fprintf(f,"#%s\n",algo_name.c_str());
+    fprintf(f,"########################\n\n");
+    fprintf(f,"#Paramaters: seed count, walk length, no of repeats \n");
+    fprintf(f,"%lld,%lld,%d\n\n",params.seed_count,params.walk_length,params.no_of_repeat);
+    fprintf(f,"#Results: Mean Err, Median Err, Max Err, stddev Err (in %%) of simple sampling\n");
+    fprintf(f,"%lf,%lf,%lf,%lf \n\n",error_stats.mean_error_percentage,
+            error_stats.median_error_percentage,error_stats.max_error_percentage,
+            error_stats.stddev_error_percentage);
+    fprintf(f,"#Fraction of edges seen, fraction of vertices seen of simple sampling (maximum over all run)\n");
+    fprintf(f,"%lf,%lf\n\n",obs_stats.edges_seen_percentage, obs_stats.vertices_seen_percentage);
+}
+
+std::string GetTimestamp()
+{
+    auto now = std::time(nullptr);
+    char buf[sizeof("YYYY-MM-DD_HH:MM:SS")];
+    return std::string(buf,buf +
+                           std::strftime(buf,sizeof(buf),"%F_%T",std::gmtime(&now)));
+}
+
+void TriangleEstimator (CGraph *cg, Parameters params_simple, Parameters params_weighted, Count true_triangle_count)
+{
     std::vector<Estimates> estimate_by_simple_sampling, estimate_by_weighted_sampling;
 
-    for (Count i = 0; i< no_of_repeat; i++) {
-        Estimates sampleAllEdgeEstimate = EstimateTrianglesBySimpleSampling(cg, params);
-        estimate_by_simple_sampling.push_back(sampleAllEdgeEstimate);
-    }
-    ErrorStats err_simple_sampling = GetErrorStatistics(estimate_by_simple_sampling,true_triangle_count);
-    ObservedPercentage obs_simple_sampling = GetObservedPercentage (estimate_by_simple_sampling);
+//    std::cout << " Running simple sampling" << std::endl;
+//    for (Count i = 0; i< params_simple.no_of_repeat; i++) {
+//        Estimates sampleAllEdgeEstimate = EstimateTrianglesBySimpleSampling(cg, params_simple);
+//        estimate_by_simple_sampling.push_back(sampleAllEdgeEstimate);
+//        std:: cout << i << "\n";
+//    }
+//    ErrorStats err_simple_sampling = GetErrorStatistics(estimate_by_simple_sampling,true_triangle_count);
+//    ObservedPercentage obs_simple_sampling = GetObservedPercentage (estimate_by_simple_sampling);
 
-    for (Count i = 0; i< no_of_repeat; i++) {
-    Estimates sampleByEdgeDegreeEstimate = EstimateTrianglesBySimpleSampling(cg, params);
+    std::cout << "Running weighted sampling" << std::endl;
+    for (Count i = 0; i< params_weighted.no_of_repeat; i++) {
+    Estimates sampleByEdgeDegreeEstimate = EstimateTrianglesByWeightedSampling(cg, params_weighted);
     estimate_by_weighted_sampling.push_back(sampleByEdgeDegreeEstimate);
+    std::cout << i <<"\n";
     }
     ErrorStats err_weighted_sampling = GetErrorStatistics(estimate_by_weighted_sampling,true_triangle_count);
     ObservedPercentage obs_weighted_sampling = GetObservedPercentage (estimate_by_weighted_sampling);
 
     // Print to console
-
-    printf("# no of vertices, no of edges\n");
-    printf("%lld,%lld\n",cg->nVertices,cg->nEdges);
-    printf("%lld,%lld,%lld\n",params.seed_count,params.walk_length,params.subsample_size);
-    printf("# actual count\n");
-    printf("%lld\n",true_triangle_count);
-    printf("Mean Err, Median Err, Max Err, stddev Err (in %%) of simple sampling\n");
-    printf("%lf,%lf,%lf,%lf \n",err_simple_sampling.mean_error_percentage,
-            err_simple_sampling.median_error_percentage,err_simple_sampling.max_error_percentage,
-            err_simple_sampling.stddev_error_percentage);
-    printf("Fraction of edges seen, fraction of vertices seen of simple sampling\n");
-    printf("%lf,%lf\n",obs_simple_sampling.edges_seen_percentage,obs_simple_sampling.vertices_seen_percentage);
-
-    printf("Mean Err, Median Err, Max Err, stddev Err (in %%) of weighted sampling\n");
-    printf("%lf,%lf,%lf,%lf\n",err_weighted_sampling.mean_error_percentage,
-            err_weighted_sampling.median_error_percentage,err_weighted_sampling.max_error_percentage,
-            err_weighted_sampling.stddev_error_percentage);
-    printf("Fraction of edges seen, fraction of vertices seen of weighted sampling\n");
-    printf("%lf,%lf\n",obs_weighted_sampling.edges_seen_percentage,obs_weighted_sampling.vertices_seen_percentage);
+    WriteHeaderInOutput( stdout, params_simple.filename, cg, true_triangle_count);
+//    WriteAlgorithmOutput(stdout, "Simple Sampling", params_simple, err_simple_sampling, obs_simple_sampling);
+    WriteAlgorithmOutput(stdout, "Weighted Sampling", params_weighted, err_weighted_sampling, obs_weighted_sampling);
 
     // print to file
-    auto current = std::chrono::system_clock::now();
-    FILE* f = fopen("out.txt","w");
+    std::string output_filename = GetTimestamp();
+    output_filename = "../output/" + output_filename + "-" +
+            params_simple.filename.substr(params_simple.filename.find_last_of("/\\") + 1) +".txt";
+    FILE* f = fopen(output_filename.c_str(),"w");
     if (!f)
     {
         printf("could not write to output to out.txt\n");
         return;
     }
-    fprintf(f,"Filename = %s \n",params.filename.c_str());
-    fprintf(f,"# no of vertices, no of edges\n");
-    fprintf(f,"%lld,%lld\n",cg->nVertices,cg->nEdges);
-    fprintf(f,"%lld,%lld,%lld\n",params.seed_count,params.walk_length,params.subsample_size);
-    fprintf(f,"# actual count\n");
-    fprintf(f,"%lld\n",true_triangle_count);
-    fprintf(f,"Mean Err, Median Err, Max Err, stddev Err (in %%) of simple sampling\n");
-    fprintf(f,"%lf,%lf,%lf,%lf \n",err_simple_sampling.mean_error_percentage,
-            err_simple_sampling.median_error_percentage,err_simple_sampling.max_error_percentage,
-            err_simple_sampling.stddev_error_percentage);
-    fprintf(f,"Fraction of edges seen, fraction of vertices seen of simple sampling\n");
-    fprintf(f,"%lf,%lf\n",obs_simple_sampling.edges_seen_percentage, obs_simple_sampling.vertices_seen_percentage);
+    WriteHeaderInOutput( f, params_simple.filename, cg, true_triangle_count);
+//    WriteAlgorithmOutput(f, "Simple Sampling", params_simple, err_simple_sampling, obs_simple_sampling);
+    WriteAlgorithmOutput(f, "Weighted Sampling", params_weighted, err_weighted_sampling, obs_weighted_sampling);
 
-//    fprintf(f,"Mean Err, Median Err, Max Err, stddev Err (in %%) of weighted sampling\n");
-//    fprintf(f,"%lf,%lf,%lf,%lf\n",err_weighted_sampling.mean_error_percentage,
-//            err_weighted_sampling.median_error_percentage,err_weighted_sampling.max_error_percentage,
-//            err_weighted_sampling.stddev_error_percentage);
-//    fprintf(f,"Fraction of edges seen, fraction of vertices seen of weighted sampling\n");
-    fprintf(f,"%lf,%lf\n",obs_weighted_sampling.edges_seen_percentage,obs_weighted_sampling.vertices_seen_percentage);
     fclose(f);
 }
 
