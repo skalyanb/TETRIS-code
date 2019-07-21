@@ -5,15 +5,9 @@
 #ifndef SUBGRAPHCOUNT_ERRORCODE_H
 #define SUBGRAPHCOUNT_ERRORCODE_H
 
-namespace Escape
-{
-    enum ErrorCode : int
-    {
-        ecNone
-        , ecInvalidInput
-        , ecSystemError
-        , ecUnsupportedFormat
-        , ecIOError
+namespace Escape {
+    enum ErrorCode : int {
+        ecNone, ecInvalidInput, ecSystemError, ecUnsupportedFormat, ecIOError
     };
 }
 #endif //SUBGRAPHCOUNT_ERRORCODE_H

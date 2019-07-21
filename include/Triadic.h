@@ -14,8 +14,7 @@ using namespace Escape;
 
 // Structure that stores triangle information of graph
 
-struct TriangleInfo
-{
+struct TriangleInfo {
     Count total; // total number of triangles
     Count *perVertex;  // array storing number of triangles for each vertex
     Count *perEdge;   // arry storing number of triangles for each edge
@@ -24,9 +23,8 @@ struct TriangleInfo
 
 
 //use with a Graph or CGraph as argument
-template <class T>
-TriangleInfo newTriangleInfo(const T* graph)
-{
+template<class T>
+TriangleInfo newTriangleInfo(const T *graph) {
     TriangleInfo ret;
     ret.total = 0;
     ret.perVertex = new Count[graph->nVertices];
@@ -35,8 +33,7 @@ TriangleInfo newTriangleInfo(const T* graph)
 }
 
 
-void delTriangleInfo(TriangleInfo& info)
-{
+void delTriangleInfo(TriangleInfo &info) {
     delete[] info.perVertex;
     delete[] info.perEdge;
 }
@@ -52,8 +49,7 @@ void delTriangleInfo(TriangleInfo& info)
 // We only store triangles for one copy of edge (i,j), where i < j in the degree ordering.
 
 
-struct TriangleList
-{
+struct TriangleList {
     VertexIdx total;
     VertexIdx *triangles;
     EdgeIdx *trioffsets;
@@ -126,32 +122,31 @@ TriangleInfo wedgeEnumerator(CGraph *g)
 // Input: a pointer gout to a CGraph labeled according to degree
 // Output: a TriangleInfo for g. The ordering of edges in perEdge (of TriangleInfo) is that same as g.
 
-TriangleInfo betterWedgeEnumerator(CGraph *gout)
-{
+TriangleInfo betterWedgeEnumerator(CGraph *gout) {
     TriangleInfo ret;   // output
     ret.total = 0;      // initialize outout
-    ret.perVertex = new EdgeIdx[gout->nVertices+1];
-    ret.perEdge = new EdgeIdx[gout->nEdges+1];
+    ret.perVertex = new EdgeIdx[gout->nVertices + 1];
+    ret.perEdge = new EdgeIdx[gout->nEdges + 1];
 
-    for (VertexIdx i=0; i < gout->nVertices; ++i)
+    for (VertexIdx i = 0; i < gout->nVertices; ++i)
         ret.perVertex[i] = 0;
 
-    for (EdgeIdx j=0; j < gout->nEdges; ++j)
+    for (EdgeIdx j = 0; j < gout->nEdges; ++j)
         ret.perEdge[j] = 0;
 
     VertexIdx end1, end2;
     EdgeIdx loc;
 
-    for (VertexIdx i=0; i < gout->nVertices; ++i) // loop over vertices
-        for (EdgeIdx j = gout->offsets[i]; j < gout->offsets[i+1]; ++j)   // loop over neighbor of i
-            for (EdgeIdx k = j+1; k < gout->offsets[i+1]; ++k)         // loop over another neighbor of i
+    for (VertexIdx i = 0; i < gout->nVertices; ++i) // loop over vertices
+        for (EdgeIdx j = gout->offsets[i]; j < gout->offsets[i + 1]; ++j)   // loop over neighbor of i
+            for (EdgeIdx k = j + 1; k < gout->offsets[i + 1]; ++k)         // loop over another neighbor of i
             {
                 end1 = gout->nbors[j];     // we are now looking at wedge (i, end1, end2), centered at i
                 end2 = gout->nbors[k];
 
                 // note that end1 < end2 because of the labeled ordering
 
-                loc = gout->getEdgeBinary(end1,end2);
+                loc = gout->getEdgeBinary(end1, end2);
                 if (loc != -1)        // (end1, end2) is present
                 {
                     ret.total++;       // found a triangle! So update total.

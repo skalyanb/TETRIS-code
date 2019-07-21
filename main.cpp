@@ -17,11 +17,10 @@ using namespace Escape;
  * @return
  */
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     Graph g;
-    std::vector <std::string> graph_path;
-    std::vector <Count> trueTriangleCount;
+    std::vector<std::string> graph_path;
+    std::vector<Count> trueTriangleCount;
 
 //    graph_path.push_back ("../graphs/soc-flickr.edges");
 //    trueTriangleCount.push_back(58771288); // flickr
@@ -35,7 +34,7 @@ int main(int argc, char *argv[])
 //    graph_path.push_back ("../graphs/socfb-A-anon.edges");
 //    trueTriangleCount.push_back(55606428); //socfb-A- anon
 
-    graph_path.push_back ("../graphs/soc-orkut.edges");
+    graph_path.push_back("../graphs/soc-orkut.edges");
     trueTriangleCount.push_back(524643952);  // orkut
 
     // The true triangle count: get by running exact count algorithm
@@ -44,33 +43,32 @@ int main(int argc, char *argv[])
 
 //    if (loadGraph(argv[1], g, 1, IOFormat::escape))
 //        exit(1);
-    for (int i=0; i< graph_path.size();i++) {
+    for (int i = 0; i < graph_path.size(); i++) {
 
         if (loadGraph(graph_path[i].c_str(), g, 1, IOFormat::escape))
             exit(1);
 
         printf("#Vertices = %lld, #Edges = %lld\n", g.nVertices, g.nEdges);
 
-        printf("Loaded graph from %s\n",graph_path[i].c_str());
+        printf("Loaded graph from %s\n", graph_path[i].c_str());
         CGraph cg = makeCSR(g);
         cg.sortById();
         printf("Converted to CSR\n");
 
         std::string filename(graph_path[i]);
-        int noOfRepeat = 2;
+        int noOfRepeat = 20;
         // Set up input parameters for simple sampling estimators
         VertexIdx seedCount_1 = 1;
-        EdgeIdx walkLength_1 = g.nEdges/50; // g.nEdges is twice the number of edges
-        Parameters params_1 = {seedCount_1,walkLength_1,0,noOfRepeat,filename};
+        EdgeIdx walkLength_1 = g.nEdges / 1000; // g.nEdges is twice the number of edges
+        Parameters params_1 = {seedCount_1, walkLength_1, 0, noOfRepeat, filename};
 
         // Set up input parameters for weighted sampling estimators
         VertexIdx seedCount_2 = 1;
-        EdgeIdx walkLength_2 = g.nEdges/500; // g.nEdges is twice the number of edges
-        EdgeIdx subSampleSize = walkLength_2/100;
-        Parameters params_2 = {seedCount_2,walkLength_2,subSampleSize,noOfRepeat,filename};
+        EdgeIdx walkLength_2 = g.nEdges / 1000; // g.nEdges is twice the number of edges
+        EdgeIdx subSampleSize = walkLength_2 / 10;
+        Parameters params_2 = {seedCount_2, walkLength_2, subSampleSize, noOfRepeat, filename};
 
-        TriangleEstimator (&cg, params_1, params_2, trueTriangleCount[i]);
+        TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
     }
-
     return 0;
 }

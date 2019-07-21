@@ -4,11 +4,9 @@
 using namespace Escape;
 
 
-static bool isBlankLine( const char* line )
-{
-    while( *line )
-    {
-        if( !isspace( *line ) )
+static bool isBlankLine(const char *line) {
+    while (*line) {
+        if (!isspace(*line))
             return false;
         ++line;
     }
@@ -16,11 +14,9 @@ static bool isBlankLine( const char* line )
 }
 
 
-static ErrorCode loadGraph_Escape(const char *path, Graph& graph, int undirected)
-{
-    FILE* f = fopen(path, "r");
-    if (!f)
-    {
+static ErrorCode loadGraph_Escape(const char *path, Graph &graph, int undirected) {
+    FILE *f = fopen(path, "r");
+    if (!f) {
         fprintf(stderr, "could not open file %s\n", path);
         return ecInvalidInput;
     }
@@ -28,8 +24,7 @@ static ErrorCode loadGraph_Escape(const char *path, Graph& graph, int undirected
     graph.nVertices = 0;
     EdgeIdx iEdge = 0;
     char line[1024];
-    while (fgets(line, sizeof(line), f))
-    {
+    while (fgets(line, sizeof(line), f)) {
         //Ignore comment lines.
         if (line[0] == '#')
             continue;
@@ -39,23 +34,19 @@ static ErrorCode loadGraph_Escape(const char *path, Graph& graph, int undirected
 
         int64_t i1, i2;
         sscanf(line, "%ld%ld", &i1, &i2);
-        if (graph.nVertices == 0)
-        {
+        if (graph.nVertices == 0) {
             graph.nVertices = i1;
             if (undirected)
-                graph.nEdges = 2*i2;
+                graph.nEdges = 2 * i2;
             else
                 graph.nEdges = i2;
             graph.srcs = new VertexIdx[graph.nEdges];
             graph.dsts = new VertexIdx[graph.nEdges];
-        }
-        else
-        {
+        } else {
             graph.srcs[iEdge] = i1;
             graph.dsts[iEdge] = i2;
             ++iEdge;
-            if (undirected)
-            {
+            if (undirected) {
                 graph.srcs[iEdge] = i2;
                 graph.dsts[iEdge] = i1;
                 ++iEdge;
@@ -64,8 +55,7 @@ static ErrorCode loadGraph_Escape(const char *path, Graph& graph, int undirected
     }
     fclose(f);
 
-    if (iEdge < graph.nEdges)
-    {
+    if (iEdge < graph.nEdges) {
         fprintf(stderr, "expected %ld edges, only got %ld\n", graph.nEdges, iEdge);
         return ecIOError;
     }
@@ -74,11 +64,8 @@ static ErrorCode loadGraph_Escape(const char *path, Graph& graph, int undirected
 }
 
 
-
-ErrorCode Escape::loadGraph(const char *path, Graph& graph, int undirected, IOFormat fmt)
-{
-    switch (fmt)
-    {
+ErrorCode Escape::loadGraph(const char *path, Graph &graph, int undirected, IOFormat fmt) {
+    switch (fmt) {
         case IOFormat::escape:
             return loadGraph_Escape(path, graph, undirected);
 
