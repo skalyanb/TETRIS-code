@@ -6,22 +6,18 @@
 #include "include/Graph.h"
 #include "include/Digraph.h"
 #include "include/GetAllCounts.h"
-#include "include/Triangle.h"
-
+#include "include/TriangleEstimators.h"
+#include  "include/Triadic.h"
+#include "include/EstimatorUtil.h"
 using namespace Escape;
-
-/**
- *
- * @param argc
- * @param argv
- * @return
- */
 
 int main(int argc, char *argv[]) {
     Graph g;
     std::vector<std::string> graph_path;
     std::vector<Count> trueTriangleCount;
 
+//    CountTriangle(argc,argv);
+//    return 0;
 //    graph_path.push_back ("../graphs/soc-flickr.edges");
 //    trueTriangleCount.push_back(58771288); // flickr
 //
@@ -34,7 +30,7 @@ int main(int argc, char *argv[]) {
 //    graph_path.push_back ("../graphs/socfb-A-anon.edges");
 //    trueTriangleCount.push_back(55606428); //socfb-A- anon
 
-    graph_path.push_back("../graphs/soc-orkut.edges");
+    graph_path.push_back("../graphs/graph_in_edges_format/soc-orkut.edges");
     trueTriangleCount.push_back(524643952);  // orkut
 
     // The true triangle count: get by running exact count algorithm
@@ -68,7 +64,9 @@ int main(int argc, char *argv[]) {
         EdgeIdx subSampleSize = walkLength_2 / 10;
         Parameters params_2 = {seedCount_2, walkLength_2, subSampleSize, noOfRepeat, filename};
 
-        TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
+        //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
+        TriangleEstimator(&cg, params_1,trueTriangleCount[i],EstTriByEdgeSparsification);
+        //CountExactTriangles (&cg);
     }
     return 0;
 }

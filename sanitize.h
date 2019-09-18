@@ -14,7 +14,7 @@
 
 namespace sanitize
 {
-    using VertexIdx = int32_t;
+    using VertexIdx = int64_t;
     struct pair_hash
     {
         template <class T1, class T2>

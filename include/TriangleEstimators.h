@@ -2,8 +2,8 @@
 // Created by Suman Kalyan Bera on 2019-06-17.
 //
 
-#ifndef SUBGRAPHCOUNT_TRIANGLE_H
-#define SUBGRAPHCOUNT_TRIANGLE_H
+#ifndef SUBGRAPHCOUNT_TRIANGLEESTIMATORS_H
+#define SUBGRAPHCOUNT_TRIANGLEESTIMATORS_H
 
 #include <random>
 #include <cmath>
@@ -15,6 +15,8 @@
 #include <utility>
 #include <string>
 #include <ctime>
+#include <iterator>
+
 
 #include <algorithm>
 #include "GraphIO.h"
@@ -80,6 +82,10 @@ struct Estimates {
     double fraction_of_edges_seen; // This fraction is with respect to twice the number of edges
 };
 
+struct ExactCount {
+    double triangle_count;
+};
+
 bool ComparatorByEdgesSeen(Estimates a, Estimates b) {
     return (a.fraction_of_edges_seen < b.fraction_of_edges_seen);
 }
@@ -96,19 +102,26 @@ struct ObservedGraphStats {
     EdgeIdx EdgesSeenAsNbors;
 };
 
-// A structure to store percentage of the graph observed over multiple runs
-struct ObservedPercentage {
-    double vertices_seen_percentage;
-    double edges_seen_percentage;
-};
 
-// A structure to store error in the estimates over multiple runs
-struct ErrorStats {
-    double mean_error_percentage;
-    double median_error_percentage;
-    double stddev_error_percentage;
-    double max_error_percentage;
-};
+ExactCount CountExactTriangles (CGraph *cg)
+{
+    printf ("Exactly counting triangles...\n");
+
+    ExactCount output;
+    cg->sortById();
+    CGraph cg_relabel = cg->renameByDegreeOrder();
+    cg_relabel.sortById();
+    CDAG dag = degreeOrdered(&cg_relabel);
+    (dag.outlist).sortById();
+//  (dag.inlist).sortById();
+
+    TriangleInfo info;
+    info = betterWedgeEnumerator(&(dag.outlist));
+    output.triangle_count = info.total;
+
+    printf ("Triangle=%lld \n",info.total);
+    return output;
+}
 
 EdgeStructCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::mt19937 mt) {
     // Get the number of vertices, number of edges, Initialize scaling to number of edges.
@@ -342,7 +355,8 @@ Estimates SampleAllEdges(CGraph *cg, EdgeStructCollection &edge_collection, std:
     return return_estimate;
 }
 
-Estimates EstimateTrianglesByWeightedSampling(CGraph *cg, Parameters params) {
+//EsTRaW
+Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
     Estimates output;
     EdgeStructCollection randomEdgeCollection;
 
@@ -357,14 +371,15 @@ Estimates EstimateTrianglesByWeightedSampling(CGraph *cg, Parameters params) {
     return output;
 }
 
-Estimates EstimateTrianglesBySimpleSampling(CGraph *cg, Parameters params) {
+Estimates EstTriByRWandSimpleSampling(CGraph *cg, Parameters params) {
+
     Estimates output;
     EdgeStructCollection randomEdgeCollection;
 
     // Set up random number generator
     std::random_device rd;
     // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distribution
+    // draw an element from various distributions
     std::mt19937 mt(rd());
 
     randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
@@ -372,124 +387,80 @@ Estimates EstimateTrianglesBySimpleSampling(CGraph *cg, Parameters params) {
     return output;
 }
 
-ErrorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count true_triangle_count) {
-    int no_of_repeats = (int) algo_estimates.size();
-
-    // Populate the error percentage for each run
-    std::vector<double> algo_error_percentage_list(no_of_repeats);
-    // TODO consider using lambda function
-    for (int i = 0; i < no_of_repeats; i++)
-        algo_error_percentage_list[i] =
-                std::abs(algo_estimates[i].triangle_estimate - true_triangle_count) * 100 / true_triangle_count;
-
-    int middle_index = no_of_repeats / 2;
-    std::nth_element(algo_error_percentage_list.begin(), algo_error_percentage_list.begin() + middle_index,
-                     algo_error_percentage_list.end());
-    double median_error_percentage = algo_error_percentage_list[middle_index];
-
-    double max_error_percentage = *std::max_element(algo_error_percentage_list.begin(),
-                                                    algo_error_percentage_list.end());
-
-    double sum = std::accumulate(algo_error_percentage_list.begin(), algo_error_percentage_list.end(), 0.0);
-    double mean_error_percentage = sum / no_of_repeats;
-
-    std::vector<double> diff(no_of_repeats);
-    std::transform(algo_error_percentage_list.begin(), algo_error_percentage_list.end(), diff.begin(),
-                   [mean_error_percentage](double x) { return x - mean_error_percentage; });
-    double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    double stdev_error_percentage = std::sqrt(sq_sum / no_of_repeats);
 
 
-    ErrorStats error_stats = {mean_error_percentage, median_error_percentage,
-                              stdev_error_percentage, max_error_percentage};
-    return error_stats;
-}
 
-ObservedPercentage GetObservedPercentage(std::vector<Estimates> algo_estimates) {
-    // Maximum edges and vertices seen over all the runs
-    double vertices_seen_percentage = (*std::max_element(algo_estimates.begin(),
-                                                         algo_estimates.end(),
-                                                         ComparatorByVerticesSeen)).fraction_of_vertices_seen;
-    double edges_seen_percentage = (*std::max_element(algo_estimates.begin(),
-                                                      algo_estimates.end(),
-                                                      ComparatorByEdgesSeen)).fraction_of_edges_seen;
-    ObservedPercentage output = {vertices_seen_percentage, edges_seen_percentage};
-    return output;
-}
+Estimates EstTriByRW(CGraph *cg, Parameters params) {}
 
-// TODO use c++ file buffer here
-void WriteHeaderInOutput(FILE *f, std::string filename, CGraph *cg, Count triangle_count) {
-    fprintf(f, "#Filename = %s \n", filename.c_str());
-    fprintf(f, "########################\n");
-    fprintf(f, "#Graph Properties\n");
-    fprintf(f, "########################\n");
-    fprintf(f, "# no of vertices, no of edges, no of triangles\n");
-    fprintf(f, "%lld,%lld,%lld\n\n", cg->nVertices, cg->nEdges, triangle_count);
-}
+/**
+ * Algorithm:
+ * 1. Sample every edge with probability p
+ * 2. Let the subsampled graph be G_p.
+ * 3. Count the number of triangles in G_p and scale the count up by 1/p^3
+ * @param cg
+ * @param params
+ * @return
+ */
+Estimates EstTriByEdgeSparsification(CGraph *cg, Parameters params)
+{
+    // This algorithm is implemented by a three step process.
+    // First, we construct a new graph object from the subsampled edges
+    // Then, we convert it into a CGraph object
+    // Finally, we call exact triangle count routine on CGraph object
 
-void WriteAlgorithmOutput(FILE *f, std::string algo_name, Parameters params,
-                          ErrorStats error_stats, ObservedPercentage obs_stats) {
-    fprintf(f, "########################\n");
-    fprintf(f, "#%s\n", algo_name.c_str());
-    fprintf(f, "########################\n\n");
-    fprintf(f, "#Paramaters: seed count, walk length, no of repeats \n");
-    fprintf(f, "%lld,%lld,%d\n\n", params.seed_count, params.walk_length, params.no_of_repeat);
-    fprintf(f, "#Results: Mean Err, Median Err, Max Err, stddev Err (in %%) of simple sampling\n");
-    fprintf(f, "%lf,%lf,%lf,%lf \n\n", error_stats.mean_error_percentage,
-            error_stats.median_error_percentage, error_stats.max_error_percentage,
-            error_stats.stddev_error_percentage);
-    fprintf(f, "#Fraction of edges seen, fraction of vertices seen of simple sampling (maximum over all run)\n");
-    fprintf(f, "%lf,%lf\n\n", obs_stats.edges_seen_percentage, obs_stats.vertices_seen_percentage);
-}
+    double p = 0.1;
+    VertexIdx n = cg->nVertices;
+    EdgeIdx m = cg->nEdges; // Note that m is twice the number of edges
+    // Set up random number generator
+    std::random_device rd;
+    // Using this random number generator initializize a PRNG: this PRNG is passed along to
+    // draw an element from various distribution0-
+    std::mt19937 mt(rd());
+    std::bernoulli_distribution sparsifier(p);
 
-std::string GetTimestamp() {
-    auto now = std::time(nullptr);
-    char buf[sizeof("YYYY-MM-DD_HH:MM:SS")];
-    return std::string(buf, buf +
-                            std::strftime(buf, sizeof(buf), "%F_%T", std::gmtime(&now)));
-}
-
-void TriangleEstimator(CGraph *cg, Parameters params_simple, Parameters params_weighted, Count true_triangle_count) {
-    std::vector<Estimates> estimate_by_simple_sampling, estimate_by_weighted_sampling;
-
-    std::cout << "Running weighted sampling" << std::endl;
-    for (Count i = 0; i < params_weighted.no_of_repeat; i++) {
-        Estimates sampleByEdgeDegreeEstimate = EstimateTrianglesByWeightedSampling(cg, params_weighted);
-        estimate_by_weighted_sampling.push_back(sampleByEdgeDegreeEstimate);
-        std::cout << i << "\n";
+    // Iterate over the graph to sparsify it
+    VertexIdx src = 0, dst = 0;
+    EdgeIdx nEdges = 0;
+    std::vector<VertexIdx > srcs;
+    std::vector<VertexIdx > dsts;
+    for (EdgeIdx i = 0; i < m; i++) {
+        if ( i == cg->offsets[src+1])
+            ++src;
+        dst = cg->nbors[i]; // (src,dst) is the i-th edge in the nbor list
+        if (src < dst) {    // This check ensures that each edge {src,dst} is considered only once
+            if (sparsifier(mt)) { // The edge {src,dst} will be part of the sparsified graph
+                srcs.emplace_back(src);
+                dsts.emplace_back(dst);
+                ++nEdges;
+                srcs.emplace_back(dst);  // The graph representation (adjacency list) requires both the edges to be present
+                dsts.emplace_back(src);
+                ++nEdges;
+            }
+        }
     }
-    ErrorStats err_weighted_sampling = GetErrorStatistics(estimate_by_weighted_sampling, true_triangle_count);
-    ObservedPercentage obs_weighted_sampling = GetObservedPercentage(estimate_by_weighted_sampling);
+    Graph g_p;
+    g_p.nVertices = n;
+    g_p.nEdges = nEdges;
+    g_p.srcs = new VertexIdx[g_p.nEdges];
+    g_p.dsts = new VertexIdx[g_p.nEdges];
 
-    std::cout << " Running simple sampling" << std::endl;
-    for (Count i = 0; i < params_simple.no_of_repeat; i++) {
-        Estimates sampleAllEdgeEstimate = EstimateTrianglesBySimpleSampling(cg, params_simple);
-        estimate_by_simple_sampling.push_back(sampleAllEdgeEstimate);
-        std::cout << i << "\n";
-    }
-    ErrorStats err_simple_sampling = GetErrorStatistics(estimate_by_simple_sampling, true_triangle_count);
-    ObservedPercentage obs_simple_sampling = GetObservedPercentage(estimate_by_simple_sampling);
+    std::copy(std::begin(srcs), std::end(srcs), g_p.srcs);
+    std::copy(std::begin(dsts), std::end(dsts), g_p.dsts);
 
+    CGraph cg_p = makeCSR(g_p);
 
-    // Print to console
-    WriteHeaderInOutput(stdout, params_simple.filename, cg, true_triangle_count);
-    WriteAlgorithmOutput(stdout, "Simple Sampling", params_simple, err_simple_sampling, obs_simple_sampling);
-    WriteAlgorithmOutput(stdout, "Weighted Sampling", params_weighted, err_weighted_sampling, obs_weighted_sampling);
+    ExactCount triangles_in_Gp = CountExactTriangles(&cg_p);
+    double triangleEstimate = (triangles_in_Gp.triangle_count * 1.0)/ (p*p*p);
+    std::cout << nEdges <<"  " << triangleEstimate << std::endl;
+    printf ("%lld,  %lf",nEdges,triangleEstimate);
 
-    // print to file
-    std::string output_filename = GetTimestamp();
-    output_filename = "../output/" + output_filename + "-" +
-                      params_simple.filename.substr(params_simple.filename.find_last_of("/\\") + 1) + ".txt";
-    FILE *f = fopen(output_filename.c_str(), "w");
-    if (!f) {
-        printf("could not write to output to out.txt\n");
-        return;
-    }
-    WriteHeaderInOutput(f, params_simple.filename, cg, true_triangle_count);
-    WriteAlgorithmOutput(f, "Simple Sampling", params_simple, err_simple_sampling, obs_simple_sampling);
-    WriteAlgorithmOutput(f, "Weighted Sampling", params_weighted, err_weighted_sampling, obs_weighted_sampling);
+    Estimates return_estimate = {};
+    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.fraction_of_vertices_seen = 1; // TODO fix this
+    return_estimate.fraction_of_edges_seen = nEdges * 100.0 / m;
 
-    fclose(f);
+    return return_estimate;
 }
 
-#endif //SUBGRAPHCOUNT_TRIANGLE_H
+
+#endif //SUBGRAPHCOUNT_TRIANGLEESTIMATORS_H

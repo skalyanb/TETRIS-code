@@ -1,7 +1,3 @@
-//
-// Created by Suman Kalyan Bera on 2019-07-19.
-//
-
 // Takes as input a file with edges list as pairs of strings, and creates
 // the proper input for our library.
 // Usage: sanitize.out out_directory input_filename
@@ -114,8 +110,8 @@ int sanitize_direct (char* argv[])
 
         // Debug help messages and parameters
         line_no ++;
-        if (line_no % 1000000 == 0){
-            std::cout << "At line no " << line_no << std::endl;
+        if (line_no % 10000000 == 0){
+            std::cout << "Reading line no " << line_no/10000000 << "0 M" << std::endl;
 //            std::cout << "current size = " << dict.size() << ";";
         }
     }
@@ -141,7 +137,7 @@ int sanitize_direct (char* argv[])
         std::cout << "File writing error." << std::endl;
         return 0;
     }
-
+    std::cout << "Writing to output file" << std::endl;
     // First line gets the number of vertices and number of edges: n m
     output_file << n << " " << m << "\n";
     for (auto element : edgeList)
@@ -150,8 +146,6 @@ int sanitize_direct (char* argv[])
     output_file.close();
     return 0;
 }
-
-
 
 int main(int argc, char *argv[]) {
 
