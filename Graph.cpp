@@ -130,6 +130,42 @@ EdgeIdx CGraph::getEdgeBinary(VertexIdx v1, VertexIdx v2) const {
 
 //Checks if edge (v1, v2) is present using binary search
 //Assumes CGraph is sorted by ID
+//If edge is present: Return the number of edges between v1 and v2 in the adjacency list of v1
+//If edge is not present: return -1
+EdgeIdx CGraph::getEdgeCount(VertexIdx v1, VertexIdx v2) const {
+    if (v1 >= nVertices)
+        return -1;
+    EdgeIdx low = offsets[v1];
+    EdgeIdx high = offsets[v1 + 1] - 1;
+    EdgeIdx mid;
+    EdgeIdx found, multiplicity=0;
+
+    while (low <= high) {
+        mid = (low + high) / 2;
+        if (nbors[mid] == v2) {
+            multiplicity = 1;
+            found = mid+1;
+            while ( found <= high && nbors[found] == v2) {
+                multiplicity++;
+                found ++;
+            }
+            found = mid-1;
+            while ( found >= low && nbors[found] == v2) {
+                multiplicity ++;
+                found --;
+            }
+            return multiplicity;
+        }
+        if (nbors[mid] > v2)
+            high = mid - 1;
+        else
+            low = mid + 1;
+    }
+    return -1;
+}
+
+//Checks if edge (v1, v2) is present using binary search
+//Assumes CGraph is sorted by ID
 //If edge is present: return true
 //If edge is not present: return false
 bool CGraph::isEdgeBinary(VertexIdx v1, VertexIdx v2) const {

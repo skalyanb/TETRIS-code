@@ -8,6 +8,7 @@
 #define SUBGRAPHCOUNT_ESTIMATORUTIL_H
 
 #include "TriangleEstimators.h"
+#include "BaselineEstimators.h"
 
 // TODO consider merging the below two structure into one
 // A structure to store various statistics of an estimator across multiple runs
@@ -98,6 +99,7 @@ std::string GetTimestamp() {
                             std::strftime(buf, sizeof(buf), "%F_%T", std::gmtime(&now)));
 }
 
+
 template <typename TF>
 void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count, TF func) {
     std::vector<Estimates> estimates;
@@ -111,7 +113,7 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
 
     // Print to console
     WriteHeaderInOutput(stdout, params.filename, cg, true_triangle_count);
-    WriteAlgorithmOutput(stdout, "Simple Sampling", params, est_stats);
+    WriteAlgorithmOutput(stdout, __func__, params, est_stats);
 
     // print to file
     std::string output_filename = GetTimestamp();
@@ -130,47 +132,47 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
 
 }
 
-void TriangleEstimator(CGraph *cg, Parameters params_simple, Parameters params_weighted, Count true_triangle_count) {
-    std::vector<Estimates> estimate_by_simple_sampling, estimate_by_weighted_sampling;
-
-    std::cout << "Running weighted sampling" << std::endl;
-    for (Count i = 0; i < params_weighted.no_of_repeat; i++) {
-        Estimates sampleByEdgeDegreeEstimate = EstTriByRWandWghtedSampling(cg, params_weighted);
-        estimate_by_weighted_sampling.push_back(sampleByEdgeDegreeEstimate);
-        std::cout << i << "\n";
-    }
-    EstimatorStats err_weighted_sampling = GetErrorStatistics(estimate_by_weighted_sampling, true_triangle_count);
-    //ObservedPercentage obs_weighted_sampling = GetObservedPercentage(estimate_by_weighted_sampling);
-
-    std::cout << " Running simple sampling" << std::endl;
-    for (Count i = 0; i < params_simple.no_of_repeat; i++) {
-        Estimates sampleAllEdgeEstimate = EstTriByRWandSimpleSampling(cg, params_simple);
-        estimate_by_simple_sampling.push_back(sampleAllEdgeEstimate);
-        std::cout << i << "\n";
-    }
-    EstimatorStats err_simple_sampling = GetErrorStatistics(estimate_by_simple_sampling, true_triangle_count);
-
-
-    // Print to console
-    WriteHeaderInOutput(stdout, params_simple.filename, cg, true_triangle_count);
-    WriteAlgorithmOutput(stdout, "Simple Sampling", params_simple, err_simple_sampling);
-    WriteAlgorithmOutput(stdout, "Weighted Sampling", params_weighted, err_weighted_sampling);
-
-    // print to file
-    std::string output_filename = GetTimestamp();
-    output_filename = "../output/" + output_filename + "-" +
-                      params_simple.filename.substr(params_simple.filename.find_last_of("/\\") + 1) + ".txt";
-    FILE *f = fopen(output_filename.c_str(), "w");
-    if (!f) {
-        printf("could not write to output to out.txt\n");
-        return;
-    }
-    WriteHeaderInOutput(f, params_simple.filename, cg, true_triangle_count);
-    WriteAlgorithmOutput(f, "Simple Sampling", params_simple, err_simple_sampling);
-    WriteAlgorithmOutput(f, "Weighted Sampling", params_weighted, err_weighted_sampling);
-
-    fclose(f);
-}
+//void TriangleEstimator(CGraph *cg, Parameters params_simple, Parameters params_weighted, Count true_triangle_count) {
+//    std::vector<Estimates> estimate_by_simple_sampling, estimate_by_weighted_sampling;
+//
+//    std::cout << "Running weighted sampling" << std::endl;
+//    for (Count i = 0; i < params_weighted.no_of_repeat; i++) {
+//        Estimates sampleByEdgeDegreeEstimate = EstTriByRWandWghtedSampling(cg, params_weighted);
+//        estimate_by_weighted_sampling.push_back(sampleByEdgeDegreeEstimate);
+//        std::cout << i << "\n";
+//    }
+//    EstimatorStats err_weighted_sampling = GetErrorStatistics(estimate_by_weighted_sampling, true_triangle_count);
+//    //ObservedPercentage obs_weighted_sampling = GetObservedPercentage(estimate_by_weighted_sampling);
+//
+//    std::cout << " Running simple sampling" << std::endl;
+//    for (Count i = 0; i < params_simple.no_of_repeat; i++) {
+//        Estimates sampleAllEdgeEstimate = EstTriByRWandSimpleSampling(cg, params_simple);
+//        estimate_by_simple_sampling.push_back(sampleAllEdgeEstimate);
+//        std::cout << i << "\n";
+//    }
+//    EstimatorStats err_simple_sampling = GetErrorStatistics(estimate_by_simple_sampling, true_triangle_count);
+//
+//
+//    // Print to console
+//    WriteHeaderInOutput(stdout, params_simple.filename, cg, true_triangle_count);
+//    WriteAlgorithmOutput(stdout, "Simple Sampling", params_simple, err_simple_sampling);
+//    WriteAlgorithmOutput(stdout, "Weighted Sampling", params_weighted, err_weighted_sampling);
+//
+//    // print to file
+//    std::string output_filename = GetTimestamp();
+//    output_filename = "../output/" + output_filename + "-" +
+//                      params_simple.filename.substr(params_simple.filename.find_last_of("/\\") + 1) + ".txt";
+//    FILE *f = fopen(output_filename.c_str(), "w");
+//    if (!f) {
+//        printf("could not write to output to out.txt\n");
+//        return;
+//    }
+//    WriteHeaderInOutput(f, params_simple.filename, cg, true_triangle_count);
+//    WriteAlgorithmOutput(f, "Simple Sampling", params_simple, err_simple_sampling);
+//    WriteAlgorithmOutput(f, "Weighted Sampling", params_weighted, err_weighted_sampling);
+//
+//    fclose(f);
+//}
 
 
 #endif //SUBGRAPHCOUNT_ESTIMATORUTIL_H

@@ -9,6 +9,8 @@
 #include "include/TriangleEstimators.h"
 #include  "include/Triadic.h"
 #include "include/EstimatorUtil.h"
+#include "include/BaselineEstimators.h"
+
 using namespace Escape;
 
 int main(int argc, char *argv[]) {
@@ -18,10 +20,13 @@ int main(int argc, char *argv[]) {
 
 //    CountTriangle(argc,argv);
 //    return 0;
-//    graph_path.push_back ("../graphs/soc-flickr.edges");
+    graph_path.push_back ("../graphs/graph_in_edges_format/soc-flickr.edges");
+    trueTriangleCount.push_back(58771288); // flickr
+
+//    graph_path.push_back ("../graphs/graph_in_edges_format/small-test.edges");
 //    trueTriangleCount.push_back(58771288); // flickr
 //
-//    graph_path.push_back ("../graphs/soc-livejournal.edges");
+//    graph_path.push_back ("../graphs/graph_in_edges_format/soc-livejournal.edges");
 //    trueTriangleCount.push_back(83552703); //livejournal
 //
 //    graph_path.push_back ("../graphs/soc-flickr-und.edges");
@@ -30,8 +35,8 @@ int main(int argc, char *argv[]) {
 //    graph_path.push_back ("../graphs/socfb-A-anon.edges");
 //    trueTriangleCount.push_back(55606428); //socfb-A- anon
 
-    graph_path.push_back("../graphs/graph_in_edges_format/soc-orkut.edges");
-    trueTriangleCount.push_back(524643952);  // orkut
+//    graph_path.push_back("../graphs/graph_in_edges_format/soc-orkut.edges");
+//    trueTriangleCount.push_back(524643952);  // orkut
 
     // The true triangle count: get by running exact count algorithm
     //soc-orkut ==524,643,952; soc-flicks == 58,771,28; soc-flickr-und = 548,658,705; livejournal = 83,552,703;
@@ -52,20 +57,24 @@ int main(int argc, char *argv[]) {
         printf("Converted to CSR\n");
 
         std::string filename(graph_path[i]);
-        int noOfRepeat = 20;
+        int noOfRepeat = 10;
         // Set up input parameters for simple sampling estimators
         VertexIdx seedCount_1 = 1;
-        EdgeIdx walkLength_1 = g.nEdges / 1000; // g.nEdges is twice the number of edges
-        Parameters params_1 = {seedCount_1, walkLength_1, 0, noOfRepeat, filename};
+        EdgeIdx walkLength_1 = g.nEdges / 100; // g.nEdges is twice the number of edges
+        Parameters params_1 = {filename, seedCount_1, walkLength_1, 0, noOfRepeat};
 
         // Set up input parameters for weighted sampling estimators
         VertexIdx seedCount_2 = 1;
-        EdgeIdx walkLength_2 = g.nEdges / 1000; // g.nEdges is twice the number of edges
+        EdgeIdx walkLength_2 = g.nEdges / 20; // g.nEdges is twice the number of edges
         EdgeIdx subSampleSize = walkLength_2 / 10;
-        Parameters params_2 = {seedCount_2, walkLength_2, subSampleSize, noOfRepeat, filename};
+        double sparsification_prob = 0.9;
+        Parameters params_2 = {filename, seedCount_2, walkLength_2, subSampleSize, noOfRepeat,sparsification_prob};
 
         //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
-        TriangleEstimator(&cg, params_1,trueTriangleCount[i],EstTriByEdgeSparsification);
+        //TriangleEstimator(&cg, params_2, trueTriangleCount[i], EstTriByRWandWghtedSampling);
+        //TriangleEstimator(&cg, params_2, trueTriangleCount[i], EstTriByUniformSampling);
+        //TriangleEstimator(&cg, params_2, trueTriangleCount[i], EstTriBySparsification);
+        TriangleEstimator(&cg, params_2, trueTriangleCount[i], EstTriByRW);
         //CountExactTriangles (&cg);
     }
     return 0;

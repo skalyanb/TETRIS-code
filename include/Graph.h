@@ -80,6 +80,10 @@ namespace Escape {
         //Returns invalidEdge if v1 -> v2 does not exist
         EdgeIdx getEdgeBinary(VertexIdx v1, VertexIdx v2) const;
 
+        //Returns the multiplicity of the edge v1 -> v2 in the nbor list v1.
+        //Returns invalidEdge if v1 -> v2 does not exist
+        EdgeIdx getEdgeCount(VertexIdx v1, VertexIdx v2) const;
+
         bool isEdgeBinary(VertexIdx v1, VertexIdx v2) const;
 
         //Returns the index of the edge v1 -> v2 in the nbor list nbors.

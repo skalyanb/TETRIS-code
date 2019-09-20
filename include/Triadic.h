@@ -125,14 +125,18 @@ TriangleInfo wedgeEnumerator(CGraph *g)
 TriangleInfo betterWedgeEnumerator(CGraph *gout) {
     TriangleInfo ret;   // output
     ret.total = 0;      // initialize outout
-    ret.perVertex = new EdgeIdx[gout->nVertices + 1];
-    ret.perEdge = new EdgeIdx[gout->nEdges + 1];
 
-    for (VertexIdx i = 0; i < gout->nVertices; ++i)
-        ret.perVertex[i] = 0;
+    // We do not need per vertex and per edge information. So commenting out those parts.
+    // If you need such information, uncomment them.
 
-    for (EdgeIdx j = 0; j < gout->nEdges; ++j)
-        ret.perEdge[j] = 0;
+//    ret.perVertex = new EdgeIdx[gout->nVertices + 1];
+//    ret.perEdge = new EdgeIdx[gout->nEdges + 1];
+//
+//    for (VertexIdx i = 0; i < gout->nVertices; ++i)
+//        ret.perVertex[i] = 0;
+//
+//    for (EdgeIdx j = 0; j < gout->nEdges; ++j)
+//        ret.perEdge[j] = 0;
 
     VertexIdx end1, end2;
     EdgeIdx loc;
@@ -146,18 +150,19 @@ TriangleInfo betterWedgeEnumerator(CGraph *gout) {
 
                 // note that end1 < end2 because of the labeled ordering
 
-                loc = gout->getEdgeBinary(end1, end2);
+                //loc = gout->getEdgeBinary(end1, end2);
+                loc = gout->getEdgeCount(end1, end2);
                 if (loc != -1)        // (end1, end2) is present
                 {
-                    ret.total++;       // found a triangle! So update total.
-
-                    ret.perVertex[i]++; // update all per vertex counts
-                    ret.perVertex[end1]++;
-                    ret.perVertex[end2]++;
-
-                    ret.perEdge[j]++;  // update all per edge counts. Note that location used is same as position in g->nbors
-                    ret.perEdge[k]++;
-                    ret.perEdge[loc]++;
+                    //ret.total++;       // found a triangle! So update total.
+                    ret.total += loc;
+//                    ret.perVertex[i]++; // update all per vertex counts
+//                    ret.perVertex[end1]++;
+//                    ret.perVertex[end2]++;
+//
+//                    ret.perEdge[j]++;  // update all per edge counts. Note that location used is same as position in g->nbors
+//                    ret.perEdge[k]++;
+//                    ret.perEdge[loc]++;
                 }
             }
 
