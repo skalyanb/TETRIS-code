@@ -44,6 +44,7 @@ struct Parameters {
     EdgeIdx subsample_size;
     int no_of_repeat = 1;
     double sparsification_prob = 0.1;
+    std::string algo_name = "none!";
 };
 
 // A structure to store an edge with all the relavant information
@@ -108,7 +109,7 @@ Estimates CountExactTriangles (CGraph *cg)
     info = betterWedgeEnumerator(&(dag.outlist));
     output.triangle_estimate = info.total;
 
-    printf ("Triangle=%lld \n",info.total);
+    printf ("  Triangle=%lld ",info.total);
     return output;
 }
 

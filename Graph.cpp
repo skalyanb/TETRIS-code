@@ -51,9 +51,9 @@ Graph Graph::copy() const {
 
 
 void Graph::print(FILE *f) const {
-    fprintf(f, "nVertices=%ld nEdges=%ld\n", (int64_t) nVertices, (int64_t) nEdges);
+    fprintf(f, "nVertices=%lld nEdges=%lld\n", (int64_t) nVertices, (int64_t) nEdges);
     for (EdgeIdx i = 0; i < nEdges; ++i)
-        fprintf(f, "  %ld   %ld -> %ld\n", (int64_t) i, (int64_t) srcs[i], (int64_t) dsts[i]);
+        fprintf(f, "  %lld   %lld -> %lld\n", (int64_t) i, (int64_t) srcs[i], (int64_t) dsts[i]);
 }
 
 
@@ -77,11 +77,11 @@ CGraph CGraph::copy() const {
 
 
 void CGraph::print(FILE *f) const {
-    fprintf(f, "nVertices=%ld nEdges=%ld\n", (int64_t) nVertices, (int64_t) nEdges);
+    fprintf(f, "nVertices=%lld nEdges=%lld\n", (int64_t) nVertices, (int64_t) nEdges);
     for (VertexIdx i = 0; i < nVertices; ++i) {
-        fprintf(f, "%ld: ", (int64_t) i);
+        fprintf(f, "%lld: ", (int64_t) i);
         for (EdgeIdx j = offsets[i]; j < offsets[i + 1]; ++j)
-            fprintf(f, "%ld ", (int64_t) nbors[j]);
+            fprintf(f, "%lld ", (int64_t) nbors[j]);
         fprintf(f, "\n");
     }
 }
