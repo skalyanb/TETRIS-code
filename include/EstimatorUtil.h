@@ -125,7 +125,7 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
 //    WriteHeaderInOutput(stdout, params, cg, true_triangle_count);
 //    WriteAlgorithmOutput(stdout, params.algo_name, params, est_stats);
 //    WriteRawData(stdout,estimates);
-
+//
 
     // print to file
     std::string current_time = GetTimestamp();
@@ -141,7 +141,6 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
     WriteHeaderInOutput(f, params, cg, true_triangle_count);
     WriteAlgorithmOutput(f, params.algo_name, params, est_stats);
     WriteRawData(f,estimates);
-
 
     fclose(f);
 

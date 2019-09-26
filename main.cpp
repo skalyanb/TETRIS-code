@@ -21,7 +21,7 @@ using namespace Escape;
 // seed_count: the number of start vertices for the rndom walk based algorithms
 // sparsification_prob: how much of the graph we want to see? Length of the random walk
 //                      is  set as sum_of_degree*sparification_prob.
-// algo_code: 1 for our algo, 2 for EstTriByRWAndCount....
+// algo_code: 1 for our algo, 2 for EstTriByRWAndCountPerEdge....
 
 int main(int argc, char *argv[]) {
 
@@ -109,8 +109,9 @@ int main(int argc, char *argv[]) {
         std::string filename(graph_path[i]);
         int noOfRepeat = 100;
 
-        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,0.025,0.05,0.075};
-        //std::vector <double> sparsification_prob_list {0.1,0.2,0.3,0.4};
+        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,0.025,0.05,0.075,0.1,
+                                                       0.2,0.3,0.4,0.5};
+        //std::vector <double> sparsification_prob_list {0.1,0.2,0.3,0.4,0.5};
 
         for ( auto sparsification_prob : sparsification_prob_list) {
             // Set up input parameters for weighted sampling estimators
@@ -121,8 +122,8 @@ int main(int argc, char *argv[]) {
 
             //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
 
-            params.algo_name = "EstTriByRWWfgtdSamp";
-            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
+//            params.algo_name = "EstTriByRWWfgtdSamp";
+//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
 
             //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriBySparsification);
 
@@ -131,12 +132,14 @@ int main(int argc, char *argv[]) {
             //params.algo_name = "EstTriByEdgeSampleAndCount";
             //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByEdgeSampleAndCount);
 
-            //params.algo_name = "EstTriByRW";
-            //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRW);
+//            params.algo_name = "EstTriByRW";
+//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRW);
 
-            params.algo_name = "EstTriByRWAndCount";
-            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndCount);
+//            params.algo_name = "EstTriByRWAndCountPerEdge";
+//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndCountPerEdge);
 
+            params.algo_name = "EstTriByRWAndNeighborSample";
+            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
             //CountExactTriangles (&cg);
         }
     }

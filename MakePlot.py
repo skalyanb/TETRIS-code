@@ -69,30 +69,32 @@ def plot_comparison(data_dir_1,data_dir_2):
 
     for i, file in enumerate(os.listdir(data_dir_1)):
         data_file = data_dir_1 + file
+        print (data_file)
 
-        df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
-        triangle_count = df_tri_count[0][0]
+    #df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
+        #triangle_count = df_tri_count[0][0]
 
         df_median_error = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_err(x),header=None, usecols=[1])
-        median_error = df_median_error[0][0]
+        median_error = df_median_error.iloc[0,0]
 
         df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
-        edges_seen = df_edges_seen[0][0]
+        edges_seen = df_edges_seen.iloc[0,0]
 
         Y_1.append(median_error)
         X_1.append(edges_seen)
 
     for i, file in enumerate(os.listdir(data_dir_2)):
         data_file = data_dir_2 + file
+        print (data_file)
 
-        df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
-        triangle_count = df_tri_count[0][0]
+        #df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
+        #triangle_count = df_tri_count[0][0]
 
         df_median_error = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_err(x),header=None, usecols=[1])
-        median_error = df_median_error[0][0]
+        median_error = df_median_error.iloc[0,0]
 
         df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
-        edges_seen = df_edges_seen[0][0]
+        edges_seen = df_edges_seen.iloc[0,0]
 
         Y_2.append(median_error)
         X_2.append(edges_seen)
@@ -100,7 +102,7 @@ def plot_comparison(data_dir_1,data_dir_2):
         #scatter plot
     plt.scatter(X_1, Y_1, s=20, c='blue', marker='o')
 
-    plt.scatter(X_2, Y_2, s=20, c='red', marker='-')
+    plt.scatter(X_2, Y_2, s=20, c='red', marker='o')
 
     #change axes ranges
     # y_min = triangle_count * 0.7
