@@ -12,6 +12,18 @@ def skip_rows (index):
         return True
     return False
 
+def skip_rows_err (index):
+    if index <10 or index > 10:
+        return True
+    return False
+
+
+def skip_rows_seen (index):
+    if index <13 or index > 13:
+        return True
+    return False
+
+
 def plot_estimates (data_dir):
     X=[]
     Y=[]
@@ -45,19 +57,86 @@ def plot_estimates (data_dir):
     plt.ylabel('Triangle Estimates')
 
     #show plot
+    fig = plt.figure()
+#    plt.show()
+    fig.save(data_dir+".png")
+
+def plot_comparison(data_dir_1,data_dir_2):
+    X_1=[]
+    Y_1=[]
+    X_2=[]
+    Y_2=[]
+
+    for i, file in enumerate(os.listdir(data_dir_1)):
+        data_file = data_dir_1 + file
+
+        df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
+        triangle_count = df_tri_count[0][0]
+
+        df_median_error = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_err(x),header=None, usecols=[1])
+        median_error = df_median_error[0][0]
+
+        df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
+        edges_seen = df_edges_seen[0][0]
+
+        Y_1.append(median_error)
+        X_1.append(edges_seen)
+
+    for i, file in enumerate(os.listdir(data_dir_2)):
+        data_file = data_dir_2 + file
+
+        df_tri_count = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x),header=None, usecols=[2])
+        triangle_count = df_tri_count[0][0]
+
+        df_median_error = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_err(x),header=None, usecols=[1])
+        median_error = df_median_error[0][0]
+
+        df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
+        edges_seen = df_edges_seen[0][0]
+
+        Y_2.append(median_error)
+        X_2.append(edges_seen)
+
+        #scatter plot
+    plt.scatter(X_1, Y_1, s=20, c='blue', marker='o')
+
+    plt.scatter(X_2, Y_2, s=20, c='red', marker='-')
+
+    #change axes ranges
+    # y_min = triangle_count * 0.7
+    # y_max = triangle_count * 1.3
+    # plt.xlim(0,30)
+    # plt.ylim(y_min, y_max)
+
+    #add title
+    plt.title('Accuracy vs Visits')
+
+    #add x and y labels
+    plt.xlabel('Percentage of Edges Visited')
+    plt.ylabel('Triangle Estimates')
+
+    #show plot
+    fig = plt.figure()
     plt.show()
+    # fig.save(data_dir+".png")
 
 
 if __name__ == "__main__":
-    DEFAULT = "output/soc-flickr.edges"
+    data_dir_1 = "output/soc-flickr.edges/EstTriByRWWfgtdSamp/"
+    data_dir_2 = "output/soc-flickr.edges/EstTriByRWAndCount/"
 
-    data_dir = DEFAULT if len(sys.argv) == 1 else sys.argv[1]
-    data_dir += "/"
+    #data_dir = DEFAULT if len(sys.argv) == 1 else sys.argv[1]
+    # if len(sys.argv) == 2:
+    #     data_dir_2 = sys.argv[2]
+    #     data_dir_2 += "/"
+    # data_dir += "/"
 
     #fig, ax = plt.subplots(1, 1)
 
     # key, ylabel = plot_estimates(ax, data_dir)
-    plot_estimates(data_dir)
+    #plot_estimates(data_dir)
+
+    plot_comparison(data_dir_1,data_dir_2)
 
     # fig.legend(handles=key)
     # plt.ylabel(ylabel)

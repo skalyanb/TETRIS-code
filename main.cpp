@@ -73,8 +73,8 @@ int main(int argc, char *argv[]) {
 //    graph_path.push_back ("graphs/graph_in_edges_format/small-test.edges");
 //    trueTriangleCount.push_back(8); // flickr
 
-//    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr.edges");
-//    trueTriangleCount.push_back(58771288); // flickr
+    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr.edges");
+    trueTriangleCount.push_back(58771288); // flickr
 
     graph_path.push_back ("graphs/graph_in_edges_format/socfb-A-anon.edges");
     trueTriangleCount.push_back(55606428); //socfb-A- anon
@@ -107,9 +107,9 @@ int main(int argc, char *argv[]) {
         printf("Converted to CSR\n");
 
         std::string filename(graph_path[i]);
-        int noOfRepeat = 5;
+        int noOfRepeat = 100;
 
-        std::vector <double> sparsification_prob_list {0.001,0.005,0.01,0.05,0.1};
+        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,0.025,0.05,0.075};
         //std::vector <double> sparsification_prob_list {0.1,0.2,0.3,0.4};
 
         for ( auto sparsification_prob : sparsification_prob_list) {
@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
 
             //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
 
-//            params.algo_name = "EstTriByRWWfgtdSamp";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
+            params.algo_name = "EstTriByRWWfgtdSamp";
+            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
 
             //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriBySparsification);
 

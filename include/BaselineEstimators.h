@@ -578,7 +578,7 @@ Estimates EstTriByRWAndCount(CGraph *cg, Parameters params) {
     VertexIdx vertices_seen = std::count_if(visited_with_nbor_vertex_flag.begin(),
                                          visited_with_nbor_vertex_flag.end(),
                                          IsTrue);
-    printf("V=%lld,E=%lld",vertices_seen,edges_seen);
+    //printf("V=%lld,E=%lld",vertices_seen,edges_seen);
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
 
