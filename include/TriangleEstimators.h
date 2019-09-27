@@ -313,7 +313,7 @@ Estimates SampleAllEdges(CGraph *cg, OrderedEdgeCollection &edge_collection, std
 
     // Variables used for estimating the triangle count
     EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
-    double X = 0, Y = 0, Z = 0, scaling = m / 2;
+    double X = 0, Y = 0, Z = 0, scaling = m / 6;
     Count raw_count = 0; // TODO remove, does not have any purpose
 
     // Stats about the algorithm: how many new distinct vertices and edges are

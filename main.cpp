@@ -73,20 +73,22 @@ int main(int argc, char *argv[]) {
 //    graph_path.push_back ("graphs/graph_in_edges_format/small-test.edges");
 //    trueTriangleCount.push_back(8); // flickr
 
-    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr.edges");
-    trueTriangleCount.push_back(58771288); // flickr
+//    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr.edges");
+//    trueTriangleCount.push_back(58771288); // flickr
+//
+//    graph_path.push_back ("graphs/graph_in_edges_format/socfb-A-anon.edges");
+//    trueTriangleCount.push_back(55606428); //socfb-A- anon
+//
+//    graph_path.push_back ("graphs/graph_in_edges_format/soc-livejournal.edges");
+//    trueTriangleCount.push_back(83552703); //livejournal
+//
+//    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr-und.edges");
+//    trueTriangleCount.push_back(548658705); //flick-und
+//
+//    graph_path.push_back("graphs/graph_in_edges_format/soc-orkut.edges");
+//    trueTriangleCount.push_back(524643952);  // orkut
 
-    graph_path.push_back ("graphs/graph_in_edges_format/socfb-A-anon.edges");
-    trueTriangleCount.push_back(55606428); //socfb-A- anon
-
-    graph_path.push_back ("graphs/graph_in_edges_format/soc-livejournal.edges");
-    trueTriangleCount.push_back(83552703); //livejournal
-
-    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr-und.edges");
-    trueTriangleCount.push_back(548658705); //flick-und
-
-    graph_path.push_back("graphs/graph_in_edges_format/soc-orkut.edges");
-    trueTriangleCount.push_back(524643952);  // orkut
+    graph_path.push_back("graphs/graph_in_edges_format/soc-sinaweibo.edges");
 //
     // The true triangle count: get by running exact count algorithm
     //soc-orkut ==524,643,952; soc-flicks == 58,771,28; soc-flickr-und = 548,658,705; livejournal = 83,552,703;
@@ -109,10 +111,10 @@ int main(int argc, char *argv[]) {
         std::string filename(graph_path[i]);
         int noOfRepeat = 100;
 
-        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,
-                                                       0.025,0.05,0.075,
-                                                       0.1,0.2,0.3,0.4,0.5};
-        //std::vector <double> sparsification_prob_list {0.1,0.2,0.3,0.4,0.5};
+//        std::vector <double> sparsification_prob_list {0.002,0.004,0.006,0.008,0.01,
+//                                                       0.025,0.05,0.075,
+//                                                       0.1,0.2,0.3,0.4};
+        std::vector <double> sparsification_prob_list {0.05};
 
         for ( auto sparsification_prob : sparsification_prob_list) {
             // Set up input parameters for weighted sampling estimators
@@ -142,10 +144,10 @@ int main(int argc, char *argv[]) {
 //            params.algo_name = "EstTriByRWAndNeighborSample";
 //            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
 
-            params.algo_name = "EstTriByRWAndNbrSample";
-            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandSimpleSampling);
+//            params.algo_name = "EstTriByRWAndNbrSample";
+//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandSimpleSampling);
 
-            //CountExactTriangles (&cg);
+            CountExactTriangles (&cg);
 
         }
     }
