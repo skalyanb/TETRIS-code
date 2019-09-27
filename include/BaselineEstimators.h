@@ -38,11 +38,11 @@ CGraph MakeSimpleGraph (VertexIdx n, std::set<std::pair<VertexIdx ,VertexIdx >> 
     // The next step is to extract the elements of edgeList and copy them into srcs and dsts array
     std::transform(std::begin(edge_list),std::end(edge_list),
                    std::back_inserter(srcs_s),
-                   [](auto const& pair) {return pair.first;});
+                   [](auto & pair) {return pair.first;});
 
     std::transform(std::begin(edge_list),std::end(edge_list),
                    std::back_inserter(dsts_s),
-                   [](auto const& pair) {return pair.second;});
+                   [](auto & pair) {return pair.second;});
 
 
     std::copy(std::begin(srcs_s), std::end(srcs_s), G_p.srcs);
