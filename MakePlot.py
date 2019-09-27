@@ -107,7 +107,7 @@ def plot_comparison(data_dir_1,data_dir_2):
     #change axes ranges
     # y_min = triangle_count * 0.7
     # y_max = triangle_count * 1.3
-    # plt.xlim(0,30)
+    plt.xlim(0,40)
     # plt.ylim(y_min, y_max)
 
     #add title
@@ -118,14 +118,15 @@ def plot_comparison(data_dir_1,data_dir_2):
     plt.ylabel('Triangle Estimates')
 
     #show plot
-    fig = plt.figure()
+    #fig = plt.figure()
     plt.show()
     # fig.save(data_dir+".png")
 
 
 if __name__ == "__main__":
-    data_dir_1 = "output/soc-flickr.edges/EstTriByRWWfgtdSamp/"
-    data_dir_2 = "output/soc-flickr.edges/EstTriByRWAndCount/"
+    data_dir_1 = "output/socfb-A-anon.edges/EstTriByRWWfgtdSamp/"
+    #data_dir_2 = "output/socfb-A-anon.edges/EstTriByRWAndCount/"
+    data_dir_2 = "output/socfb-A-anon.edges/EstTriByRWAndNeighborSample/"
 
     #data_dir = DEFAULT if len(sys.argv) == 1 else sys.argv[1]
     # if len(sys.argv) == 2:

@@ -109,8 +109,9 @@ int main(int argc, char *argv[]) {
         std::string filename(graph_path[i]);
         int noOfRepeat = 100;
 
-        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,0.025,0.05,0.075,0.1,
-                                                       0.2,0.3,0.4,0.5};
+        std::vector <double> sparsification_prob_list {0.001,0.002,0.003,0.004,0.005,0.006,0.007,0.008,0.009,0.01,
+                                                       0.025,0.05,0.075,
+                                                       0.1,0.2,0.3,0.4,0.5};
         //std::vector <double> sparsification_prob_list {0.1,0.2,0.3,0.4,0.5};
 
         for ( auto sparsification_prob : sparsification_prob_list) {
@@ -138,9 +139,14 @@ int main(int argc, char *argv[]) {
 //            params.algo_name = "EstTriByRWAndCountPerEdge";
 //            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndCountPerEdge);
 
-            params.algo_name = "EstTriByRWAndNeighborSample";
-            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
+//            params.algo_name = "EstTriByRWAndNeighborSample";
+//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
+
+            params.algo_name = "EstTriByRWAndNbrSample";
+            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandSimpleSampling);
+
             //CountExactTriangles (&cg);
+
         }
     }
     return 0;

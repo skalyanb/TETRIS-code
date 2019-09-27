@@ -340,7 +340,8 @@ Estimates SampleAllEdges(CGraph *cg, OrderedEdgeCollection &edge_collection, std
         // Now check for a triangle: a triangle is only found if u < v < w and {u,v,w} forms a triangle.
         VertexIdx deg_of_w = cg->offsets[w + 1] - cg->offsets[w];
         VertexIdx deg_of_v = cg->offsets[edge.v + 1] - cg->offsets[edge.v];
-        if (cg->isEdgeBinary(w, edge.v) && (deg_of_w > deg_of_v || (deg_of_w == deg_of_v && w > edge.v))) {
+        //if (cg->isEdgeBinary(w, edge.v) && (deg_of_w > deg_of_v || (deg_of_w == deg_of_v && w > edge.v))) {
+        if (cg->isEdgeBinary(w, edge.v)) {
             EdgeIdx third_edge = cg->getEdgeBinary(edge.v, w);
             edge_collection.visited_edge_set.insert(third_edge);
             Z = edge.degree;
