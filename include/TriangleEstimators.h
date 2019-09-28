@@ -45,6 +45,8 @@ struct Parameters {
     int no_of_repeat = 1;
     double sparsification_prob = 0.1;
     std::string algo_name = "none!";
+    bool print_to_console = false;
+    bool print_to_file = true;
 };
 
 // A structure to store an edge with all the relavant information
@@ -300,72 +302,7 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
     return return_estimate;
 }
 
-Estimates SampleAllEdges(CGraph *cg, OrderedEdgeCollection &edge_collection, std::mt19937 mt) {
 
-    // Retrieve relevant information from the edge_collection structure
-    std::vector<OrderedEdge> edge_list;
-    edge_list = edge_collection.edge_list;
-    EdgeIdx no_of_edges = edge_collection.no_of_edges;
-
-    // Set up random number generator
-    //std::random_device rd;
-    //std::mt19937 mt(rd());
-
-    // Variables used for estimating the triangle count
-    EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
-    double X = 0, Y = 0, Z = 0, scaling = m / 6;
-    Count raw_count = 0; // TODO remove, does not have any purpose
-
-    // Stats about the algorithm: how many new distinct vertices and edges are
-    // seen during neighbor sampling process
-    ObservedGraphStats obs_graph_stats = {};
-    obs_graph_stats.VerticesSeenInRandomWalk = edge_collection.visited_vertex_set.size();
-    obs_graph_stats.EdgesSeenInRandomWalk = edge_collection.visited_edge_set.size();
-
-    for (EdgeIdx i = 0; i < no_of_edges; i++) {
-        // e = (u,v) is the current with u being the lower degree end-point
-        // degree of the edge is degree of u.
-        // Sample a neighbor w of u u.a.r.
-        OrderedEdge edge = edge_list[i];
-
-        std::uniform_int_distribution<VertexIdx> dist_nbor(0, edge.degree - 1);
-        EdgeIdx random_nbor_edge = cg->offsets[edge.u] + dist_nbor(mt);
-        VertexIdx w = cg->nbors[random_nbor_edge];
-
-        // Update the edges and vertices seen so far data structure
-        // TODO to decide whether to pass a pointer or pass a reference for updating the sets
-        edge_collection.visited_edge_set.insert(random_nbor_edge);
-        edge_collection.visited_vertex_set.insert(w);
-
-        // Now check for a triangle: a triangle is only found if u < v < w and {u,v,w} forms a triangle.
-        VertexIdx deg_of_w = cg->offsets[w + 1] - cg->offsets[w];
-        VertexIdx deg_of_v = cg->offsets[edge.v + 1] - cg->offsets[edge.v];
-        //if (cg->isEdgeBinary(w, edge.v) && (deg_of_w > deg_of_v || (deg_of_w == deg_of_v && w > edge.v))) {
-        if (cg->isEdgeBinary(w, edge.v)) {
-            EdgeIdx third_edge = cg->getEdgeBinary(edge.v, w);
-            edge_collection.visited_edge_set.insert(third_edge);
-            Z = edge.degree;
-            raw_count++; // Found a triangle
-        } else
-            Z = 0;
-        Y += scaling * Z;
-    }
-    X = Y * 1.0 / no_of_edges;
-    // Create return object and store relevant stats
-    Estimates return_estimate = {};
-    return_estimate.triangle_estimate = X;
-    return_estimate.fraction_of_vertices_seen = edge_collection.visited_vertex_set.size() * 100.0 / cg->nVertices;
-    return_estimate.fraction_of_edges_seen = edge_collection.visited_edge_set.size() * 100.0 / m;
-
-    // Some other stats about the algorithm TODO decide what to do with them
-    obs_graph_stats.VerticesSeenAsNbors =
-            edge_collection.visited_vertex_set.size() - obs_graph_stats.VerticesSeenInRandomWalk;
-    obs_graph_stats.EdgesSeenAsNbors = edge_collection.visited_edge_set.size() - obs_graph_stats.EdgesSeenInRandomWalk;
-//    printf("**** Sample all *****\n");
-//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
-//    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
-    return return_estimate;
-}
 
 //EsTRaW
 Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
@@ -383,21 +320,7 @@ Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
     return output;
 }
 
-Estimates EstTriByRWandSimpleSampling(CGraph *cg, Parameters params) {
 
-    Estimates output;
-    OrderedEdgeCollection randomEdgeCollection;
-
-    // Set up random number generator
-    std::random_device rd;
-    // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distributions
-    std::mt19937 mt(rd());
-
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
-    output = SampleAllEdges(cg, randomEdgeCollection, mt);
-    return output;
-}
 
 
 #endif //SUBGRAPHCOUNT_TRIANGLEESTIMATORS_H

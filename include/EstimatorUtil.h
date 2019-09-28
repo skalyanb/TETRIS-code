@@ -7,6 +7,12 @@
 #ifndef SUBGRAPHCOUNT_ESTIMATORUTIL_H
 #define SUBGRAPHCOUNT_ESTIMATORUTIL_H
 
+#include <cstdlib>
+#include <sys/types.h>
+#include <dirent.h>
+#include <errno.h>
+
+
 #include "TriangleEstimators.h"
 #include "BaselineEstimators.h"
 
@@ -122,28 +128,54 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
     EstimatorStats est_stats = GetErrorStatistics(estimates, true_triangle_count);
 
     // Print to console
-//    WriteHeaderInOutput(stdout, params, cg, true_triangle_count);
-//    WriteAlgorithmOutput(stdout, params.algo_name, params, est_stats);
-//    WriteRawData(stdout,estimates);
-//
+    if (params.print_to_console) {
+        WriteHeaderInOutput(stdout, params, cg, true_triangle_count);
+        WriteAlgorithmOutput(stdout, params.algo_name, params, est_stats);
+        WriteRawData(stdout,estimates);
+    }
 
     // print to file
-    std::string current_time = GetTimestamp();
-    std::string out_filename = params.filename.substr(params.filename.find_last_of("/\\") + 1);
-    current_time = "output/" + out_filename +"/" +
-                current_time + "-" + out_filename +  "-" + params.algo_name + "-" +
-                std::to_string(params.sparsification_prob) +".txt";
-    FILE *f = fopen(current_time.c_str(), "w");
-    if (!f) {
-        printf("could not write to output to out.txt\n");
-        return;
+    if (params.print_to_file) {
+        // take current timestamp
+        std::string current_time = GetTimestamp();
+        // extract the input filename
+        std::string out_filename = params.filename.substr(params.filename.find_last_of("/\\") + 1);
+
+        // create the directory output/filename/algoname, if it already does not exist
+        std::string directory = "output/" + out_filename + "/" + params.algo_name;
+        DIR* dir = opendir(directory.c_str());  // try to open the directory
+        if (dir) {
+            // Directory exists, go on to create a file in this location
+            closedir(dir);
+        }
+        else if (ENOENT == errno){
+            // Directory does not exist, try creating one
+            std::string mkdir = "mkdir -p " + directory;
+            if (std::system(mkdir.c_str()) == -1) {
+                printf("Could not create directory output/%s/%s\n", out_filename.c_str(), params.algo_name.c_str());
+                return;
+            }
+
+        }
+        else {
+            printf("Could not create/find directory output/%s/%s\n",out_filename.c_str(),params.algo_name.c_str());
+            return;
+        }
+
+        out_filename = "output/" + out_filename + "/" + params.algo_name + "/" +
+                       current_time + "-" + out_filename + "-" + params.algo_name + "-" +
+                       std::to_string(params.sparsification_prob) + ".txt";
+        FILE *f = fopen(out_filename.c_str(), "w");
+        if (!f) {
+            printf("Could not write output. Please check for write permissions. Lcaoltion: %s\n",out_filename.c_str());
+            return;
+        }
+        WriteHeaderInOutput(f, params, cg, true_triangle_count);
+        WriteAlgorithmOutput(f, params.algo_name, params, est_stats);
+        WriteRawData(f, estimates);
+
+        fclose(f);
     }
-    WriteHeaderInOutput(f, params, cg, true_triangle_count);
-    WriteAlgorithmOutput(f, params.algo_name, params, est_stats);
-    WriteRawData(f,estimates);
-
-    fclose(f);
-
 
 }
 

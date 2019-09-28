@@ -1,0 +1,20 @@
+# The following parameters are required:
+# input_files: relative path of the input files, comma seperated.
+# triangle_count: the actual number of triangles in each graph, the order must be same as the input_files.
+# seed count: the number of seeds. Multiple options can be provided with comma seperated.
+# sparsification_prob: Multiple options can be provided with comma seperated.
+# subsample_prob: how many edges to sample from edges collected by random walks
+# no_of_repeats: integer. Default value is 1.
+# algo_names: Multiple options can be provided with comma seperated.
+# print_to_console: default value true
+# print_to_file: default value false
+
+input_files=graphs/graph_in_edges_format/soc-orkut.edges,graphs/graph_in_edges_format/socfb-A-anon.edges
+triangle_count=524643952,55606428
+seed_count=1
+sparsification_prob=0.1,0.2
+subsample_prob=0.05
+no_of_repeats=10
+algo_names=EstTriByRW,EstTriByRWAndNeighborSample
+print_to_console=false
+print_to_file=true

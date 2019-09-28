@@ -340,7 +340,6 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
     return return_estimate;
 }
 
-
 Estimates EstTriByRW(CGraph *cg, Parameters params) {
 
     VertexIdx n = cg->nVertices;
@@ -589,121 +588,87 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
     return return_estimate;
 }
 
+Estimates NborSampling(CGraph *cg, OrderedEdgeCollection &edge_collection, std::mt19937 mt) {
 
-Estimates EstTriByRWAndNeighborSample(CGraph *cg, Parameters params) {
+    // Retrieve relevant information from the edge_collection structure
+    std::vector<OrderedEdge> edge_list;
+    edge_list = edge_collection.edge_list;
+    EdgeIdx no_of_edges = edge_collection.no_of_edges;
 
-    VertexIdx n = cg->nVertices;
-    EdgeIdx m = cg->nEdges; // Note that m is double of the number of edges in the graph
-    VertexIdx seed_count = params.seed_count;
+    // Set up random number generator
+    //std::random_device rd;
+    //std::mt19937 mt(rd());
 
-    double p = params.sparsification_prob;
-    EdgeIdx walk_length = floor(m*p)/2;
+    // Variables used for estimating the triangle count
+    EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
+    double X = 0, Y = 0, Z = 0, scaling = m / 6;
+    Count raw_count = 0; // TODO remove, does not have any purpose
+
+    // Stats about the algorithm: how many new distinct vertices and edges are
+    // seen during neighbor sampling process
+    ObservedGraphStats obs_graph_stats = {};
+    obs_graph_stats.VerticesSeenInRandomWalk = edge_collection.visited_vertex_set.size();
+    obs_graph_stats.EdgesSeenInRandomWalk = edge_collection.visited_edge_set.size();
+
+    for (EdgeIdx i = 0; i < no_of_edges; i++) {
+        // e = (u,v) is the current with u being the lower degree end-point
+        // degree of the edge is degree of u.
+        // Sample a neighbor w of u u.a.r.
+        OrderedEdge edge = edge_list[i];
+
+        std::uniform_int_distribution<VertexIdx> dist_nbor(0, edge.degree - 1);
+        EdgeIdx random_nbor_edge = cg->offsets[edge.u] + dist_nbor(mt);
+        VertexIdx w = cg->nbors[random_nbor_edge];
+
+        // Update the edges and vertices seen so far data structure
+        // TODO to decide whether to pass a pointer or pass a reference for updating the sets
+        edge_collection.visited_edge_set.insert(random_nbor_edge);
+        edge_collection.visited_vertex_set.insert(w);
+
+        // Now check for a triangle: a triangle is only found if u < v < w and {u,v,w} forms a triangle.
+        VertexIdx deg_of_w = cg->offsets[w + 1] - cg->offsets[w];
+        VertexIdx deg_of_v = cg->offsets[edge.v + 1] - cg->offsets[edge.v];
+        //if (cg->isEdgeBinary(w, edge.v) && (deg_of_w > deg_of_v || (deg_of_w == deg_of_v && w > edge.v))) {
+        if (cg->isEdgeBinary(w, edge.v)) {
+            EdgeIdx third_edge = cg->getEdgeBinary(edge.v, w);
+            edge_collection.visited_edge_set.insert(third_edge);
+            Z = edge.degree;
+            raw_count++; // Found a triangle
+        } else
+            Z = 0;
+        Y += scaling * Z;
+    }
+    X = Y * 1.0 / no_of_edges;
+    // Create return object and store relevant stats
+    Estimates return_estimate = {};
+    return_estimate.triangle_estimate = X;
+    return_estimate.fraction_of_vertices_seen = edge_collection.visited_vertex_set.size() * 100.0 / cg->nVertices;
+    return_estimate.fraction_of_edges_seen = edge_collection.visited_edge_set.size() * 100.0 / m;
+
+    // Some other stats about the algorithm TODO decide what to do with them
+    obs_graph_stats.VerticesSeenAsNbors =
+            edge_collection.visited_vertex_set.size() - obs_graph_stats.VerticesSeenInRandomWalk;
+    obs_graph_stats.EdgesSeenAsNbors = edge_collection.visited_edge_set.size() - obs_graph_stats.EdgesSeenInRandomWalk;
+//    printf("**** Sample all *****\n");
+//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",edge_collection.visited_edge_set.size(),edge_collection.visited_vertex_set.size());
+//    printf ("%lf,%lf,%lf\n",X,vertex_fraction,edge_fraction);
+    return return_estimate;
+}
+
+Estimates EstTriByRWandNborSampling(CGraph *cg, Parameters params) {
+
+    Estimates output;
+    OrderedEdgeCollection randomEdgeCollection;
 
     // Set up random number generator
     std::random_device rd;
     // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distribution0-
+    // draw an element from various distributions
     std::mt19937 mt(rd());
 
-    // Keep track of the vertices and edges seen so far by the random walk
-//    std::set<EdgeIdx> visited_edge_set, visited_with_nbor_edge_set;
-//    std::set<VertexIdx> visited_vertex_set, visited_with_nbor_vertex_set;
-    std::vector<bool > visited_edge_flag(m,false), visited_with_nbor_edge_flag(m,false);
-    std::vector<bool > visited_vertex_flag(n, false), visited_with_nbor_vertex_flag(n,false);
-
-    EdgeIdx repeats = 0;
-    std::vector<VertexIdx > srcs;
-    std::vector<VertexIdx > dsts;
-    double running_count = 0;
-    std::set<std::pair <VertexIdx,VertexIdx>> edgeList; // This list will be used to track distinct edges in the random walk.
-
-    // Initialize a uniform distribution for generating seed vertices
-    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
-
-    // Perform a random walk for seed_count many times
-    for (VertexIdx sC = 0; sC < seed_count; sC++) {
-        // Pick a random seed vertex
-        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
-        VertexIdx parent, child;
-        parent = seed;
-        // Perform a random walk of length walk_length from the seed vertex
-        for (EdgeIdx wL = 0; wL < walk_length; wL++) {
-            VertexIdx deg_of_parent = cg->degree(parent); // degree of parent vertex
-            // TODO assumption: deg_of_parent is non-zero, add boundary check
-            // If the degree of parent vertex is 0, then we attempt seed another vertex
-            // We continue this process for certain no of times before giving up and continuing with the run
-            int attempt = 0;
-            while (deg_of_parent == 0 && attempt < 1000) {
-                printf("BAd luck! Trying again %d\n", attempt);
-                parent = dist_seed_vertex(mt);
-                deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
-                attempt++;
-            }
-
-            // Take a step of the random walk
-            std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
-            EdgeIdx random_nbor_edge =
-                    cg->offsets[parent] + dist_parent_nbor(mt);
-            child = cg->nbors[random_nbor_edge]; // child is the next vertex on the random walk
-            VertexIdx deg_of_child = cg->degree(child);// degree of the child vertex
-
-            // Perform neighborhood sampling from the lower degree enighbor
-            EdgeIdx random_edge;
-            VertexIdx random_nbor;
-            if (deg_of_child < deg_of_parent ) {
-                std::uniform_int_distribution<VertexIdx> dist_child_nbor(0, deg_of_child - 1);
-                random_edge = cg->offsets[child] + dist_child_nbor(mt);
-                random_nbor = cg->nbors[random_edge];
-                if (cg->isEdge(parent,random_nbor))
-                    running_count += deg_of_child;
-            }
-            else {
-                random_edge = cg->offsets[parent] + dist_parent_nbor(mt);
-                random_nbor = cg->nbors[random_edge];
-                if (cg->isEdge(child,random_nbor))
-                    running_count += deg_of_parent;
-            }
-            // The random walk proceeds with the vertex child
-            repeats++;
-            parent = child;
-            // If {u,v} is an isolated edge, then we will stuck here: so find a different seed and continue from there
-            if (deg_of_child == 1 && deg_of_parent == 1)
-                parent = dist_seed_vertex(mt);
-
-                // Collect the distinct edges and distinct vertices visited so far in a set
-//                visited_edge_set.insert(random_nbor_edge);
-//                visited_vertex_set.insert(parent);
-            visited_edge_flag[random_nbor_edge] = true;
-            visited_edge_flag[random_edge] = true;
-            visited_vertex_flag[parent] = true;
-            visited_vertex_flag[random_nbor] = true;
-        }
-    }
-
-    // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
-    double scale = 1.0*m / (18.0*repeats);
-    double triangleEstimate = running_count * scale ;
-    //printf("p=%lf,  scale = %lf \n",p,scale);
-//    printf ("Multi: %lld,  %lf\n",visited_edge_set.size(),triangleEstimate);
-
-    Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
-    VertexIdx edges_seen = std::count_if(visited_edge_flag.begin(),
-                                         visited_edge_flag.end(),
-                                         IsTrue);
-    VertexIdx vertices_seen = std::count_if(visited_vertex_flag.begin(),
-                                            visited_vertex_flag.end(),
-                                            IsTrue);
-    //printf("V=%lld,E=%lld",vertices_seen,edges_seen);
-    return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
-    return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
-
-    //    return_estimate.fraction_of_vertices_seen = visited_with_nbor_vertex_set.size() * 100.0 / n;
-//    return_estimate.fraction_of_edges_seen = visited_with_nbor_edge_set.size() * 100.0 / m;
-    // Why the multiplication by 2? The fraction of edges seen is effectively
-    // compared against all the entries in the adjacency list, which is 2m.
-
-    return return_estimate;
+    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
+    output = NborSampling(cg, randomEdgeCollection, mt);
+    return output;
 }
 
 #endif //SUBGRAPHCOUNT_BASELINEESTIMATORS_H
