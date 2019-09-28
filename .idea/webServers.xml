@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="51b9966f-acbd-4f68-bf4f-0fe30f3c0d3f" name="hbfeeder.ucsc.edu" url="http://hbfeeder.ucsc.edu">
+        <fileTransfer host="hbfeeder.ucsc.edu" port="22" rootFolder="/hb/home/sbera/Projects/SubgraphCount/" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
