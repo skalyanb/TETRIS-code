@@ -55,6 +55,9 @@ int main(int argc, char *argv[]) {
         Parameters params;
         params.filename = cfp.input_files[i];
         params.no_of_repeat = cfp.no_of_repeats;
+        params.print_to_console = cfp.print_to_console;
+        params.print_to_file = cfp.print_to_file;
+
         // For each sprisification parameter and seed count and algo_name, run an instance
         for (auto sparsification_prob : cfp.sparsification_prob) {
             params.sparsification_prob = sparsification_prob;
