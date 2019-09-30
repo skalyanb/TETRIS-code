@@ -24,6 +24,12 @@ using namespace Escape;
 //                      is  set as sum_of_degree*sparification_prob.
 // algo_code: 1 for our algo, 2 for EstTriByRWAndCountPerEdge....
 
+// The true triangle count: get by running exact count algorithm
+//soc-orkut ==524,643,952; soc-flicks == 58,771,288; soc-flickr-und = 548,658,705; livejournal = 83,552,703;
+// socfb-A-anon =  55,606,428 soc-sinaweibo.edges = 212,977,684
+// soc-friendster.edges = 4,173,724,142
+// soc-twitter-konect.edges =  34,824,916,864
+
 int main(int argc, char *argv[]) {
 
     Graph g;

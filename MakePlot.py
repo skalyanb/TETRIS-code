@@ -28,25 +28,26 @@ def plot_estimates (data_dir):
     X=[]
     Y=[]
     for i, file in enumerate(os.listdir(data_dir)):
-        data_file = data_dir + file
-        df_tri = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x))
-        triangle_count = df_tri["triangles"][0]
-        df_rawdata = pd.read_csv(data_file, sep=",",skiprows=15)
-        Y.extend(df_rawdata["triangle_estimate"])
-        X.extend(df_rawdata["fraction_of_edges_seen"])
+        if not file.startswith('.'):
+            data_file = data_dir + file
+            df_tri = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x))
+            triangle_count = df_tri["triangles"][0]
+            df_rawdata = pd.read_csv(data_file, sep=",",skiprows=15)
+            Y.extend(df_rawdata["triangle_estimate"])
+            X.extend(df_rawdata["fraction_of_edges_seen"])
 
 
     plt.axhline(y=triangle_count, color='r', linestyle='-')
-    plt.axhline(y=triangle_count*0.9, color='r', linestyle='-')
-    plt.axhline(y=triangle_count*1.1, color='r', linestyle='-')
+    plt.axhline(y=triangle_count*0.95, color='r', linestyle='-')
+    plt.axhline(y=triangle_count*1.05, color='r', linestyle='-')
 
     #scatter plot
     plt.scatter(X, Y, s=20, c='blue', marker='o')
 
     #change axes ranges
-    y_min = triangle_count * 0.7
-    y_max = triangle_count * 1.3
-    plt.xlim(0,30)
+    y_min = triangle_count * 0.9
+    y_max = triangle_count * 1.1
+    plt.xlim(0,1)
     plt.ylim(y_min, y_max)
 
     #add title
@@ -57,9 +58,9 @@ def plot_estimates (data_dir):
     plt.ylabel('Triangle Estimates')
 
     #show plot
-    fig = plt.figure()
-#    plt.show()
-    fig.save(data_dir+".png")
+#    fig = plt.figure()
+    plt.show()
+#    fig.savefig(data_dir+"image.png")
 
 def plot_comparison(data_dir_1,data_dir_2):
     X_1=[]
@@ -107,7 +108,7 @@ def plot_comparison(data_dir_1,data_dir_2):
     #change axes ranges
     # y_min = triangle_count * 0.7
     # y_max = triangle_count * 1.3
-    plt.xlim(0,40)
+    plt.xlim(0,20)
     # plt.ylim(y_min, y_max)
 
     #add title
@@ -120,7 +121,7 @@ def plot_comparison(data_dir_1,data_dir_2):
     #show plot
     #fig = plt.figure()
     plt.show()
-    # fig.save(data_dir+".png")
+    #fig.save(data_dir+".png")
 
 
 if __name__ == "__main__":
@@ -137,9 +138,10 @@ if __name__ == "__main__":
     #fig, ax = plt.subplots(1, 1)
 
     # key, ylabel = plot_estimates(ax, data_dir)
-    #plot_estimates(data_dir)
+    data_dir = "output/soc-twitter-konect.edges/EstTriByRWandWghtedSampling/"
+    plot_estimates(data_dir)
 
-    plot_comparison(data_dir_1,data_dir_2)
+    #plot_comparison(data_dir_1,data_dir_2)
 
     # fig.legend(handles=key)
     # plt.ylabel(ylabel)

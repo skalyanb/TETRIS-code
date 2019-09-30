@@ -9,12 +9,12 @@
 # print_to_console: default value true
 # print_to_file: default value false
 
-input_files=graphs/graph_in_edges_format/soc-orkut.edges,graphs/graph_in_edges_format/socfb-A-anon.edges
-triangle_count=524643952,55606428
+input_files=graphs/graph_in_edges_format/soc-flickr.edges
+triangle_count=5877128
 seed_count=1
-sparsification_prob=0.1,0.2
+sparsification_prob=0.05
 subsample_prob=0.05
 no_of_repeats=10
-algo_names=EstTriByRW,EstTriByRWAndNeighborSample
+algo_names=EstTriByRWandWghtedSampling
 print_to_console=false
 print_to_file=true

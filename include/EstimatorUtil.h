@@ -163,8 +163,8 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
         }
 
         out_filename = "output/" + out_filename + "/" + params.algo_name + "/" +
-                       current_time + "-" + out_filename + "-" + params.algo_name + "-" +
-                       std::to_string(params.sparsification_prob) + ".txt";
+                        std::to_string(params.sparsification_prob) + "-" +
+                        current_time + "-" + out_filename + "-" + params.algo_name + + ".txt";
         FILE *f = fopen(out_filename.c_str(), "w");
         if (!f) {
             printf("Could not write output. Please check for write permissions. Lcaoltion: %s\n",out_filename.c_str());
