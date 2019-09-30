@@ -111,7 +111,7 @@ Estimates CountExactTriangles (CGraph *cg)
     info = betterWedgeEnumerator(&(dag.outlist));
     output.triangle_estimate = info.total;
 
-    printf ("  Triangle=%lld ",info.total);
+    //printf ("  Triangle=%lld ",info.total);
     return output;
 }
 

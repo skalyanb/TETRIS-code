@@ -59,16 +59,16 @@ int main(int argc, char *argv[]) {
         params.print_to_file = cfp.print_to_file;
 
         // For each sprisification parameter and seed count and algo_name, run an instance
-        for (auto sparsification_prob : cfp.sparsification_prob) {
-            params.sparsification_prob = sparsification_prob;
-            params.walk_length = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
-            params.subsample_size = params.walk_length * cfp.subsample_prob;
+        for (auto algo_name : cfp.algo_names) {
+            params.algo_name = algo_name;
 
             for (auto seed_count: cfp.seed_count) {
                 params.seed_count = seed_count;
 
-                for (auto algo_name : cfp.algo_names) {
-                    params.algo_name = algo_name;
+                for (auto sparsification_prob : cfp.sparsification_prob) {
+                    params.sparsification_prob = sparsification_prob;
+                    params.walk_length = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
+                    params.subsample_size = params.walk_length * cfp.subsample_prob;
                     EdgeIdx triangle_count = cfp.triangle_count[i];
 
                     // Our Algorithm

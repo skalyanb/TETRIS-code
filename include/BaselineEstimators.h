@@ -91,6 +91,7 @@ EdgeIdx TriangleByVertex (CGraph* cg, VertexIdx u) {
     return v_tri;
 }
 
+
 /**
  * Algorithm:
  * 1. Sample every edge with probability p
@@ -258,6 +259,123 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
     return return_estimate;
 }
 
+Estimates EstTriByRW(CGraph *cg, Parameters params) {
+
+    VertexIdx n = cg->nVertices;
+    EdgeIdx m = cg->nEdges; // Note that m is double of the number of edges in the graph
+    VertexIdx seed_count = params.seed_count;
+    //EdgeIdx walk_length = params.walk_length;
+
+    double p = params.sparsification_prob;
+    EdgeIdx walk_length = floor(m*p)/2;
+
+    // Set up random number generator
+    std::random_device rd;
+    // Using this random number generator initializize a PRNG: this PRNG is passed along to
+    // draw an element from various distribution0-
+    std::mt19937 mt(rd());
+
+    // Keep track of the vertices and edges seen so far by the random walk
+    std::set<EdgeIdx> visited_edge_set;
+    std::set<VertexIdx> visited_vertex_set;
+    EdgeIdx nEdges = 0;
+    std::vector<VertexIdx > srcs;
+    std::vector<VertexIdx > dsts;
+    std::set<std::pair <VertexIdx,VertexIdx>> edgeList; // This list will be used to track distinct edges in the random walk.
+
+    // Initialize a uniform distribution for generating seed vertices
+    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
+
+    // Perform a random walk for seed_count many times
+    for (VertexIdx sC = 0; sC < seed_count; sC++) {
+        // Pick a random seed vertex
+        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        VertexIdx parent, child;
+        parent = seed;
+        // Perform a random walk of length walk_length from the seed vertex
+        for (EdgeIdx wL = 0; wL < walk_length; wL++) {
+            VertexIdx deg_of_parent = cg->degree(parent); // degree of parent vertex
+            // TODO assumption: deg_of_parent is non-zero, add boundary check
+            // If the degree of parent vertex is 0, then we attempt seed another vertex
+            // We continue this process for certain no of times before giving up and continuing with the run
+            int attempt = 0;
+            while (deg_of_parent == 0 && attempt < 1000) {
+                printf("BAd luck! Trying again %d\n", attempt);
+                parent = dist_seed_vertex(mt);
+                deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
+                attempt++;
+            }
+
+            // Take a step of the random walk
+            std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
+            EdgeIdx random_nbor_edge =
+                    cg->offsets[parent] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
+            child = cg->nbors[random_nbor_edge]; // child is the next vertex on the random walk
+            VertexIdx deg_of_child = cg->degree(child);// degree of the child vertex
+
+            //if (wL > 5000) {// ignore the edges till tmix
+            srcs.emplace_back(parent);
+            dsts.emplace_back(child);
+            ++nEdges;
+            srcs.emplace_back(child);  // The graph representation (adjacency list) requires both the edges to be present
+            dsts.emplace_back(parent);
+            ++nEdges;
+
+            edgeList.insert(std::make_pair(parent, child));
+            edgeList.insert(std::make_pair(child, parent));
+
+            // Collect the distinct edges and distinct vertices visited so far in a set
+            visited_edge_set.insert(random_nbor_edge);
+            visited_vertex_set.insert(parent);
+            //}
+            // The random walk proceeds with the vertex child
+            parent = child;
+            // If {u,v} is an isolated edge, then we will stuck here: so find a different seed and continue from there
+            if (deg_of_child == 1 && deg_of_parent == 1)
+                parent = dist_seed_vertex(mt);
+        }
+    }
+
+
+    // Construct a graph from the edges of the random walk
+    // Construct the induced graph G_p
+    // Note that G_p is a multi-graph. When counting triangles exactly in G_p, we consider this multiplicity.
+    // Create a multi-graph using the edges from the random walk
+    CGraph CG_p = MakeMultiGraph(n, srcs,dsts);
+
+    // Create a simple graph from the edges in the random walk
+    CGraph CG_p_s = MakeSimpleGraph(n, edgeList);
+
+
+    //p = 2.0*visited_edge_set.size() / m;
+    // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
+    Estimates triangles_in_Gp = CountExactTriangles(&CG_p_s);
+    double scale = 1.0 / pow(p,3);
+    double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
+//    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,58771288.0/triangles_in_Gp.triangle_estimate *1.0);
+//    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
+
+    // Count the exact number of triangles in the sparsified graph CG_p_s and scale it up.
+    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p);
+    double scale_s = 1.0 / pow(p,3);
+    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
+    double another_scale = 1.0* CG_p_s.nEdges / m;
+//    printf("p=%lf,  scale = %lf , desired scale = %lf, another scale=%lf\n",
+//            p,scale_s,58771288.0/triangles_in_Gp_s.triangle_estimate *1.0, 1.0/pow(another_scale,3));
+//    printf ("Simple: %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
+
+
+    Estimates return_estimate = {};
+    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
+    return_estimate.fraction_of_edges_seen = 2*visited_edge_set.size() * 100.0 / m;
+    // Why the multiplication by 2? The fraction of edges seen is effectively
+    // compared against all the entries in the adjacency list, which is 2m.
+
+    return return_estimate;
+}
+
+
 /**
  * Algorithm:
  * 0. Let p be the sparsification parameter. The goal is to sample mp many edges of the graph.
@@ -375,120 +493,6 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
                                             IsTrue);
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
-    // Why the multiplication by 2? The fraction of edges seen is effectively
-    // compared against all the entries in the adjacency list, which is 2m.
-
-    return return_estimate;
-}
-
-Estimates EstTriByRW(CGraph *cg, Parameters params) {
-
-    VertexIdx n = cg->nVertices;
-    EdgeIdx m = cg->nEdges; // Note that m is double of the number of edges in the graph
-    VertexIdx seed_count = params.seed_count;
-    //EdgeIdx walk_length = params.walk_length;
-
-    double p = params.sparsification_prob;
-    EdgeIdx walk_length = floor(m*p)/2;
-
-    // Set up random number generator
-    std::random_device rd;
-    // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distribution0-
-    std::mt19937 mt(rd());
-
-    // Keep track of the vertices and edges seen so far by the random walk
-    std::set<EdgeIdx> visited_edge_set;
-    std::set<VertexIdx> visited_vertex_set;
-    EdgeIdx nEdges = 0;
-    std::vector<VertexIdx > srcs;
-    std::vector<VertexIdx > dsts;
-    std::set<std::pair <VertexIdx,VertexIdx>> edgeList; // This list will be used to track distinct edges in the random walk.
-
-    // Initialize a uniform distribution for generating seed vertices
-    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
-
-    // Perform a random walk for seed_count many times
-    for (VertexIdx sC = 0; sC < seed_count; sC++) {
-        // Pick a random seed vertex
-        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
-        VertexIdx parent, child;
-        parent = seed;
-        // Perform a random walk of length walk_length from the seed vertex
-        for (EdgeIdx wL = 0; wL < walk_length; wL++) {
-            VertexIdx deg_of_parent = cg->degree(parent); // degree of parent vertex
-            // TODO assumption: deg_of_parent is non-zero, add boundary check
-            // If the degree of parent vertex is 0, then we attempt seed another vertex
-            // We continue this process for certain no of times before giving up and continuing with the run
-            int attempt = 0;
-            while (deg_of_parent == 0 && attempt < 1000) {
-                printf("BAd luck! Trying again %d\n", attempt);
-                parent = dist_seed_vertex(mt);
-                deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
-                attempt++;
-            }
-
-            // Take a step of the random walk
-            std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
-            EdgeIdx random_nbor_edge =
-                    cg->offsets[parent] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
-            child = cg->nbors[random_nbor_edge]; // child is the next vertex on the random walk
-            VertexIdx deg_of_child = cg->degree(child);// degree of the child vertex
-
-            //if (wL > 5000) {// ignore the edges till tmix
-                srcs.emplace_back(parent);
-                dsts.emplace_back(child);
-                ++nEdges;
-                srcs.emplace_back(child);  // The graph representation (adjacency list) requires both the edges to be present
-                dsts.emplace_back(parent);
-                ++nEdges;
-
-                edgeList.insert(std::make_pair(parent, child));
-                edgeList.insert(std::make_pair(child, parent));
-
-                // Collect the distinct edges and distinct vertices visited so far in a set
-                visited_edge_set.insert(random_nbor_edge);
-                visited_vertex_set.insert(parent);
-            //}
-            // The random walk proceeds with the vertex child
-            parent = child;
-            // If {u,v} is an isolated edge, then we will stuck here: so find a different seed and continue from there
-            if (deg_of_child == 1 && deg_of_parent == 1)
-                parent = dist_seed_vertex(mt);
-        }
-    }
-
-
-    // Construct a graph from the edges of the random walk
-    // Construct the induced graph G_p
-    // Note that G_p is a multi-graph. When counting triangles exactly in G_p, we consider this multiplicity.
-    // Create a multi-graph using the edges from the random walk
-    CGraph CG_p = MakeMultiGraph(n, srcs,dsts);
-
-    // Create a simple graph from the edges in the random walk
-    CGraph CG_p_s = MakeSimpleGraph(n, edgeList);
-
-
-    p = 2.0*visited_edge_set.size() / m;
-    // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
-    Estimates triangles_in_Gp = CountExactTriangles(&CG_p_s);
-    double scale = 1.0 / pow(p,3);
-    double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
-    //printf("p=%lf,  scale = %lf \n",p,scale);
-//    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
-
-    // Count the exact number of triangles in the sparsified graph CG_p_s and scale it up.
-    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p);
-    double scale_s = 1.0 / pow(p,3);
-    double triangleEstimate_s = triangles_in_Gp.triangle_estimate * scale_s ;
-    //printf("p=%lf,  scale = %lf \n",p,scale_s);
-//    printf ("Simple: %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
-
-
-    Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
-    return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
-    return_estimate.fraction_of_edges_seen = 2*visited_edge_set.size() * 100.0 / m;
     // Why the multiplication by 2? The fraction of edges seen is effectively
     // compared against all the entries in the adjacency list, which is 2m.
 
