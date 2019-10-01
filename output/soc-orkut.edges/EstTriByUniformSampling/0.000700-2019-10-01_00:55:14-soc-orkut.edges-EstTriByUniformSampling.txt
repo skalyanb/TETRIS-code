@@ -1,0 +1,41 @@
+#Filename = graphs/graph_in_edges_format/soc-orkut.edges , Algo name = EstTriByUniformSampling 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+2997166,212698418,524643952
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+25,1,148888,7444,0.001
+#EstTriByUniformSampling
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+185.368,100.000,455.701,151.914 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+0.070,4.592
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+0.000,0.070,4.582
+0.000,0.070,4.581
+0.000,0.070,4.581
+2915451895.044,0.070,4.585
+2915451895.044,0.070,4.577
+0.000,0.070,4.589
+0.000,0.070,4.589
+0.000,0.070,4.588
+0.000,0.070,4.588
+0.000,0.070,4.585
+0.000,0.070,4.583
+0.000,0.070,4.581
+0.000,0.070,4.586
+2915451895.044,0.070,4.583
+0.000,0.070,4.592
+2915451895.044,0.070,4.590
+0.000,0.070,4.585
+0.000,0.070,4.589
+0.000,0.070,4.592
+0.000,0.070,4.585
+2915451895.044,0.070,4.579
+0.000,0.070,4.582
+0.000,0.070,4.582
+0.000,0.070,4.586
+2915451895.044,0.070,4.581

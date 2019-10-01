@@ -1,0 +1,21 @@
+#Filename = graphs/graph_in_edges_format/socfb-A-anon.edges , Algo name = EstTriByRWAndCount 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+3097165,47334788,55606428
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+5,1,236673,11833,0.005
+#EstTriByRWAndCountPerEdge
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+0.423,0.193,1.304,0.450 
+
+Fraction of edges seen, fraction of vertices seen of simple sampling (maximum over all run)
+23.738,47.971
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+55499188.256,23.615,47.971
+55675723.037,23.576,47.637
+55816057.520,23.674,47.492
+54881249.858,23.571,47.480
+55672056.340,23.738,47.856

@@ -1,0 +1,41 @@
+#Filename = graphs/graph_in_edges_format/soc-twitter-konect.edges , Algo name = EstTriBySparsification 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+41652230,2405026092,34824916864
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+25,1,240502,12025,0.000
+#EstTriBySparsification
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+206.860,100.000,2771.507,523.506 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+0.010,0.476
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+0.000,0.010,0.471
+0.000,0.010,0.474
+0.000,0.010,0.471
+0.000,0.010,0.476
+0.000,0.010,0.472
+0.000,0.010,0.474
+0.000,0.010,0.471
+0.000,0.010,0.474
+0.000,0.010,0.473
+0.000,0.010,0.472
+0.000,0.010,0.472
+0.000,0.010,0.474
+0.000,0.010,0.472
+1000000000000.000,0.010,0.473
+0.000,0.010,0.472
+0.000,0.010,0.472
+0.000,0.010,0.472
+0.000,0.010,0.475
+0.000,0.010,0.474
+0.000,0.010,0.474
+0.000,0.010,0.473
+0.000,0.010,0.473
+0.000,0.010,0.473
+0.000,0.010,0.473
+0.000,0.010,0.475

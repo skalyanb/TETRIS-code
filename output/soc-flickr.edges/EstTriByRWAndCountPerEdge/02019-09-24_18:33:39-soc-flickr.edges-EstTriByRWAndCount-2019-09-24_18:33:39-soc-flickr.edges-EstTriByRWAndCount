@@ -1,0 +1,36 @@
+#Filename = ../graphs/graph_in_edges_format/soc-flickr.edges , Algo name = EstTriByRWAndCount 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+513969,6380904,58771288
+#no_of_repeat, seed_count, subsample_size, sparsification_prob
+20,1,31904,1595,0.005
+#EstTriByRWAndCountPerEdge
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+8.551,7.658,22.998,6.799 
+
+Fraction of edges seen, fraction of vertices seen of simple sampling (maximum over all run)
+38.706,2.120
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+63438500.627,38.706,2.036
+50014815.173,37.297,2.120
+61887208.677,38.702,2.045
+64696721.135,38.627,2.012
+59018161.915,37.879,2.025
+67597901.753,38.402,1.972
+62232814.310,38.234,2.026
+64616253.156,38.218,1.995
+57681206.791,38.519,2.074
+60092779.430,38.119,2.062
+63271964.580,38.601,2.032
+45384339.703,36.477,2.092
+48482656.868,37.394,2.053
+59996311.191,38.643,2.037
+55540371.899,37.125,2.063
+56153315.222,38.015,2.065
+57795675.324,37.958,2.049
+45255204.265,36.477,2.067
+51995047.448,37.798,2.087
+59511436.622,38.402,2.042

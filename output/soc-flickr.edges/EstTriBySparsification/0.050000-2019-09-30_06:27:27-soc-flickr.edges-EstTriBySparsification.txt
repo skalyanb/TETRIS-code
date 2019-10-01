@@ -1,0 +1,26 @@
+#Filename = graphs/graph_in_edges_format/soc-flickr.edges , Algo name = EstTriBySparsification 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+513969,6380904,58771288
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+10,1,319045,15952,0.050
+#EstTriBySparsification
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+1.112,1.070,2.785,0.688 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+5.024,19.812
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+59264000.000,5.024,19.708
+59400000.000,4.991,19.654
+59032000.000,4.978,19.690
+58008000.000,5.007,19.812
+57928000.000,4.996,19.720
+58224000.000,4.996,19.673
+58776000.000,5.019,19.741
+59504000.000,5.006,19.666
+60408000.000,5.021,19.699
+58144000.000,4.985,19.670

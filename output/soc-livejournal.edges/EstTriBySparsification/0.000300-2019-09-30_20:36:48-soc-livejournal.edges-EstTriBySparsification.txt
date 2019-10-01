@@ -1,0 +1,41 @@
+#Filename = graphs/graph_in_edges_format/soc-livejournal.edges , Algo name = EstTriBySparsification 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+4033139,55866126,83552703
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+25,1,16759,837,0.000
+#EstTriBySparsification
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+100.000,100.000,100.000,0.000 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+0.031,0.418
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+0.000,0.030,0.414
+0.000,0.030,0.417
+0.000,0.030,0.410
+0.000,0.030,0.406
+0.000,0.030,0.406
+0.000,0.030,0.405
+0.000,0.030,0.413
+0.000,0.030,0.413
+0.000,0.030,0.413
+0.000,0.031,0.418
+0.000,0.030,0.417
+0.000,0.030,0.417
+0.000,0.030,0.407
+0.000,0.030,0.414
+0.000,0.030,0.414
+0.000,0.030,0.409
+0.000,0.030,0.409
+0.000,0.030,0.407
+0.000,0.030,0.408
+0.000,0.029,0.403
+0.000,0.030,0.410
+0.000,0.029,0.401
+0.000,0.030,0.412
+0.000,0.030,0.410
+0.000,0.030,0.411

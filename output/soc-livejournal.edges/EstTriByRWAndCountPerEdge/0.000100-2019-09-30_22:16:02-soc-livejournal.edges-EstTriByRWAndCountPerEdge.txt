@@ -1,0 +1,41 @@
+#Filename = graphs/graph_in_edges_format/soc-livejournal.edges , Algo name = EstTriByRWAndCountPerEdge 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+4033139,55866126,83552703
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+25,1,5586,279,0.000
+#EstTriByRWAndCountPerEdge
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+40.853,37.083,190.320,31.428 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+0.370,3.230
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+60890010.227,0.287,2.622
+48695339.687,0.278,2.625
+56689549.626,0.355,3.013
+51852352.536,0.234,2.293
+72264590.840,0.332,2.907
+52429082.444,0.254,2.391
+52569097.798,0.223,2.202
+56139489.309,0.256,2.457
+50482202.293,0.325,2.865
+120793245.583,0.193,2.005
+53479197.595,0.288,2.714
+46681785.558,0.242,2.485
+49635442.774,0.288,2.803
+57783002.862,0.323,2.956
+119479768.221,0.332,2.688
+49932141.976,0.277,2.705
+62186819.096,0.370,3.230
+60990021.194,0.354,3.040
+54415966.983,0.266,2.644
+242569932.339,0.216,1.669
+58159710.836,0.276,2.691
+50422195.712,0.235,2.368
+63313609.320,0.237,2.281
+61846781.809,0.358,2.926
+46135058.940,0.230,2.345

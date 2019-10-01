@@ -1,0 +1,41 @@
+#Filename = graphs/graph_in_edges_format/soc-orkut.edges , Algo name = EstTriBySparsification 
+########################
+#Graph Properties
+########################
+vertices,edges,triangles
+2997166,212698418,524643952
+no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
+25,1,53174,2658,0.000
+#EstTriBySparsification
+#Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
+579.950,100.000,12098.749,2351.265 
+
+Fraction of edges seen, fraction of vertices seen(maximum over all run)
+0.025,1.738
+
+triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen
+0.000,0.025,1.702
+0.000,0.025,1.714
+0.000,0.025,1.699
+0.000,0.025,1.705
+0.000,0.025,1.714
+0.000,0.025,1.708
+0.000,0.025,1.738
+0.000,0.025,1.730
+0.000,0.025,1.729
+0.000,0.025,1.727
+0.000,0.025,1.711
+0.000,0.025,1.717
+0.000,0.025,1.720
+0.000,0.025,1.712
+0.000,0.025,1.709
+0.000,0.025,1.708
+0.000,0.025,1.730
+0.000,0.025,1.736
+0.000,0.025,1.713
+0.000,0.025,1.725
+0.000,0.025,1.736
+0.000,0.025,1.718
+0.000,0.025,1.689
+0.000,0.025,1.702
+64000000000.000,0.025,1.713
