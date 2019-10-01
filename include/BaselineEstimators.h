@@ -516,10 +516,11 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
     std::mt19937 mt(rd());
 
     // Keep track of the vertices and edges seen so far by the random walk
-//    std::set<EdgeIdx> visited_edge_set, visited_with_nbor_edge_set;
-//    std::set<VertexIdx> visited_vertex_set, visited_with_nbor_vertex_set;
-    std::vector<bool > visited_edge_flag(m,false), visited_with_nbor_edge_flag(m,false);
-    std::vector<bool > visited_vertex_flag(n, false), visited_with_nbor_vertex_flag(n,false);
+    std::vector<EdgeIdx> visited_edge_set, visited_with_nbor_edge_set;
+    std::vector<VertexIdx> visited_vertex_set, visited_with_nbor_vertex_set;
+
+//    std::vector<bool > visited_edge_flag(m,false), visited_with_nbor_edge_flag(m,false);
+//    std::vector<bool > visited_vertex_flag(n, false), visited_with_nbor_vertex_flag(n,false);
 
     EdgeIdx nEdges = 0;
     std::vector<VertexIdx > srcs;
@@ -567,16 +568,16 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
                 running_count += TriangleByEdge(cg,e_struct);
 
                 // Collect the distinct edges and distinct vertices visited so far in a set
-//                visited_edge_set.insert(random_nbor_edge);
-//                visited_vertex_set.insert(parent);
-                visited_edge_flag[random_nbor_edge] = true;
-                visited_vertex_flag[parent] = true;
+                visited_edge_set.emplace_back(random_nbor_edge);
+                visited_vertex_set.emplace_back(parent);
+//                visited_edge_flag[random_nbor_edge] = true;
+//                visited_vertex_flag[parent] = true;
 
                 // We also collect all the edges and distinct vertices assuming full neighbor access
-//                visited_with_nbor_edge_set.insert(random_nbor_edge);
-//                visited_with_nbor_vertex_set.insert(parent);
-                visited_with_nbor_edge_flag[random_nbor_edge] =true;
-                visited_with_nbor_vertex_flag[parent] = true;
+                visited_with_nbor_edge_set.emplace_back(random_nbor_edge);
+                visited_with_nbor_vertex_set.emplace_back(parent);
+//                visited_with_nbor_edge_flag[random_nbor_edge] =true;
+//                visited_with_nbor_vertex_flag[parent] = true;
 
 //                std::vector<VertexIdx > N_u, N_v;
 //                N_u.assign(cg->nbors+cg->offsets[parent],cg->nbors+cg->offsets[parent]+cg->degree(parent));
@@ -585,14 +586,16 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
 //                visited_with_nbor_vertex_set.insert(N_v.begin(),N_v.end());
 
                 for (EdgeIdx i = cg->offsets[parent]; i <cg->offsets[parent+1];i++ ) {
-//                    visited_with_nbor_edge_set.insert(i);
-                    visited_with_nbor_edge_flag[i] = true;
-                    visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
+                    visited_with_nbor_edge_set.emplace_back(i);
+                    visited_with_nbor_vertex_set.emplace_back(cg->nbors[i]);
+//                    visited_with_nbor_edge_flag[i] = true;
+//                    visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
                 }
                 for (EdgeIdx i = cg->offsets[child]; i <cg->offsets[child+1];i++ ) {
-//                    visited_with_nbor_edge_set.insert(i);
-                    visited_with_nbor_edge_flag[i] = true;
-                    visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
+                    visited_with_nbor_edge_set.emplace_back(i);
+                    visited_with_nbor_vertex_set.emplace_back(cg->nbors[i]);
+//                    visited_with_nbor_edge_flag[i] = true;
+//                    visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
                 }
 
             }
@@ -613,12 +616,23 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
 
     Estimates return_estimate = {};
     return_estimate.triangle_estimate = triangleEstimate;
-    VertexIdx edges_seen = std::count_if(visited_with_nbor_edge_flag.begin(),
-                                            visited_with_nbor_edge_flag.end(),
-                                            IsTrue);
-    VertexIdx vertices_seen = std::count_if(visited_with_nbor_vertex_flag.begin(),
-                                         visited_with_nbor_vertex_flag.end(),
-                                         IsTrue);
+    std::sort(visited_with_nbor_edge_set.begin(),visited_with_nbor_edge_set.end());
+    visited_with_nbor_edge_set.erase (std::unique(visited_with_nbor_edge_set.begin(),
+                                                  visited_with_nbor_edge_set.end()),
+                                      visited_with_nbor_edge_set.end());
+    VertexIdx edges_seen = visited_with_nbor_edge_set.size();
+
+    std::sort(visited_with_nbor_vertex_set.begin(),visited_with_nbor_vertex_set.end());
+    visited_with_nbor_vertex_set.erase (std::unique(visited_with_nbor_vertex_set.begin(),
+                                                    visited_with_nbor_vertex_set.end()),
+                                        visited_with_nbor_vertex_set.end());
+    VertexIdx vertices_seen = visited_with_nbor_vertex_set.size();
+//    VertexIdx edges_seen = std::count_if(visited_with_nbor_edge_flag.begin(),
+//                                            visited_with_nbor_edge_flag.end(),
+//                                            IsTrue);
+//    VertexIdx vertices_seen = std::count_if(visited_with_nbor_vertex_flag.begin(),
+//                                         visited_with_nbor_vertex_flag.end(),
+//                                         IsTrue);
     //printf("V=%lld,E=%lld",vertices_seen,edges_seen);
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
