@@ -1,6 +1,6 @@
 import os
 import sys
-
+import time
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -24,10 +24,20 @@ def skip_rows_seen (index):
     return False
 
 
-def plot_estimates (data_dir):
+def plot_estimates (data_dir, out_filename):
     X=[]
     Y=[]
+    max_err_percent = 20
+    min_err_percent = 20
+
+    max_band_percent = 5
+    min_band_percent = 5
+
     for i, file in enumerate(os.listdir(data_dir)):
+        path = os.path.join(data_dir, file)
+        if os.path.isdir(path):
+            # skip directories
+            continue
         if not file.startswith('.'):
             data_file = data_dir + file
             df_tri = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x))
@@ -36,31 +46,75 @@ def plot_estimates (data_dir):
             Y.extend(df_rawdata["triangle_estimate"])
             X.extend(df_rawdata["fraction_of_edges_seen"])
 
+    fig, ax = plt.subplots()
 
-    plt.axhline(y=triangle_count, color='r', linestyle='-')
-    plt.axhline(y=triangle_count*0.95, color='r', linestyle='-')
-    plt.axhline(y=triangle_count*1.05, color='r', linestyle='-')
+    y_band_min = triangle_count*(1-min_band_percent/100.0)
+    y_band_max = triangle_count*(1+max_band_percent/100.0)
+    ax.axhline(y=triangle_count, linewidth=4, color='r', linestyle='-',label='Count')
+    ax.axhline(y=y_band_min, color='r', linestyle='--')
+    ax.axhline(y=y_band_max, color='r', linestyle='--')
 
     #scatter plot
-    plt.scatter(X, Y, s=20, c='blue', marker='o')
+    ax.scatter(X, Y, s=20, c='blue', marker='o')
 
     #change axes ranges
-    y_min = triangle_count * 0.9
-    y_max = triangle_count * 1.1
-    plt.xlim(0,1)
-    plt.ylim(y_min, y_max)
+    y_min = triangle_count * (1-min_err_percent/100.0)
+    y_max = triangle_count * (1+max_err_percent/100.0)
+    ax.set_ylim(y_min, y_max)
+
+    x_min = 0.0
+    x_max = 0.3
+    ax.set_xlim(x_min,x_max)
+
+    relative_pos_band_exact = 1.0*min_err_percent / (min_err_percent + max_err_percent)
+    relative_pos_band_min = 1.0* (min_err_percent-min_band_percent) / (min_err_percent + max_err_percent)
+    relative_pos_band_max = 1.0* (min_err_percent+max_band_percent) / (min_err_percent + max_err_percent)
+
+    ax.text(1.02, relative_pos_band_exact, '0%',
+            horizontalalignment='left',
+            verticalalignment='center',
+            #rotation='vertical',
+            transform=ax.transAxes
+            )
+    ax.text(1.02, relative_pos_band_max, '+'+str(max_band_percent)+'%',
+            horizontalalignment='left',
+            verticalalignment='center',
+            #rotation='vertical',
+            transform=ax.transAxes
+            )
+    ax.text(1.02, relative_pos_band_min, '-'+str(min_band_percent)+'%',
+            horizontalalignment='left',
+            verticalalignment='center',
+            #rotation='vertical',
+            transform=ax.transAxes
+            )
+    ax.text(1.02, 1, '+'+str(max_err_percent)+'%',
+            horizontalalignment='left',
+            verticalalignment='center',
+            #rotation='vertical',
+            transform=ax.transAxes
+            )
+    ax.text(1.02, 0, '-'+str(min_err_percent)+'%',
+            horizontalalignment='left',
+            verticalalignment='center',
+            #rotation='vertical',
+            transform=ax.transAxes
+            )
+
 
     #add title
-    plt.title('Accuracy vs Visits')
+    ax.set_title('Accuracy vs Observed Graph')
 
     #add x and y labels
-    plt.xlabel('Percentage of Edges Visited')
-    plt.ylabel('Triangle Estimates')
+    ax.set_xlabel('Percentage of Edges Visited')
+    ax.set_ylabel('Triangle Estimates')
 
     #show plot
-#    fig = plt.figure()
-    plt.show()
-#    fig.savefig(data_dir+"image.png")
+    #ax.set_axis_off()
+    #plt.show()
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+
+    fig.savefig("output/plots/"+out_filename+timestr+".eps",format='eps')
 
 def plot_comparison(data_dir_1,data_dir_2):
     X_1=[]
@@ -101,9 +155,9 @@ def plot_comparison(data_dir_1,data_dir_2):
         X_2.append(edges_seen)
 
         #scatter plot
-    plt.scatter(X_1, Y_1, s=20, c='blue', marker='o')
+    plt.plot(X_1, Y_1, s=20, c='blue', marker='o')
 
-    plt.scatter(X_2, Y_2, s=20, c='red', marker='o')
+    plt.plot(X_2, Y_2, s=20, c='red', marker='o')
 
     #change axes ranges
     # y_min = triangle_count * 0.7
@@ -138,8 +192,10 @@ if __name__ == "__main__":
     #fig, ax = plt.subplots(1, 1)
 
     # key, ylabel = plot_estimates(ax, data_dir)
-    data_dir = "output/soc-twitter-konect.edges/EstTriByRWandWghtedSampling/"
-    plot_estimates(data_dir)
+    data_dir = "output/plot_data/variance_plot_data/soc-friendster.edges/EstTriByRWandWghtedSampling/"
+    out_filename = 'soc-friendster'
+    #data_dir = "output/soc-flickr.edges/EstTriByRWandWghtedSampling/"
+    plot_estimates(data_dir,out_filename)
 
     #plot_comparison(data_dir_1,data_dir_2)
 
