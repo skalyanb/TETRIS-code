@@ -24,7 +24,7 @@ def skip_rows_seen (index):
     return False
 
 
-def plot_estimates (data_dir, out_filename):
+def plot_estimates (data_dir, out_filename, x_max):
     X=[]
     Y=[]
     max_err_percent = 20
@@ -50,7 +50,7 @@ def plot_estimates (data_dir, out_filename):
 
     y_band_min = triangle_count*(1-min_band_percent/100.0)
     y_band_max = triangle_count*(1+max_band_percent/100.0)
-    ax.axhline(y=triangle_count, linewidth=4, color='r', linestyle='-',label='Count')
+    ax.axhline(y=triangle_count, linewidth=2, color='r', linestyle='-',label='Count')
     ax.axhline(y=y_band_min, color='r', linestyle='--')
     ax.axhline(y=y_band_max, color='r', linestyle='--')
 
@@ -63,7 +63,7 @@ def plot_estimates (data_dir, out_filename):
     ax.set_ylim(y_min, y_max)
 
     x_min = 0.0
-    x_max = 0.3
+    x_max = x_max
     ax.set_xlim(x_min,x_max)
 
     relative_pos_band_exact = 1.0*min_err_percent / (min_err_percent + max_err_percent)
@@ -192,8 +192,11 @@ if __name__ == "__main__":
     #fig, ax = plt.subplots(1, 1)
 
     # key, ylabel = plot_estimates(ax, data_dir)
-    data_dir = "output/plot_data/variance_plot_data/soc-friendster.edges/EstTriByRWandWghtedSampling/"
-    out_filename = 'soc-friendster'
+
+    data_dir = "output/plot_data/variance_plot_data/soc-flickr-und.edges/EstTriByRWandWghtedSampling/"
+    out_filename = 'soc-flickr-und'
+    x_max = 20
+
     #data_dir = "output/soc-flickr.edges/EstTriByRWandWghtedSampling/"
     plot_estimates(data_dir,out_filename)
 
