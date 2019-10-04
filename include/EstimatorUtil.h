@@ -96,14 +96,14 @@ void WriteAlgorithmOutput(FILE *f, std::string algo_name, Parameters params,
             est_stats.median_error_percentage, est_stats.max_error_percentage,
             est_stats.stddev_error_percentage);
     fprintf(f, "Fraction of edges seen, fraction of vertices seen(maximum over all run)\n");
-    fprintf(f, "%.3lf,%.3lf\n\n", est_stats.edges_seen_max_percentage,
+    fprintf(f, "%.6lf,%.6lf\n\n", est_stats.edges_seen_max_percentage,
             est_stats.vertices_seen_max_percentage);
 }
 
 void WriteRawData (FILE *f, std::vector<Estimates> const &estimates) {
     fprintf(f, "triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen\n");
     for (auto & est : estimates) {
-        fprintf(f, "%.3lf,%.3lf,%.3lf\n", est.triangle_estimate, est.fraction_of_edges_seen,
+        fprintf(f, "%.3lf,%.6lf,%.6lf\n", est.triangle_estimate, est.fraction_of_edges_seen,
                 est.fraction_of_vertices_seen);
     }
 }

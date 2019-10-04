@@ -21,7 +21,7 @@ CGraph MakeMultiGraph (VertexIdx n, std::vector<VertexIdx > srcs, std::vector<Ve
     std::copy(std::begin(dsts), std::end(dsts), G_p.dsts);
 
     // Convert the graph into CSR representation
-    CGraph CG_p = makeCSR(G_p);
+    CGraph CG_p = makeCSR(G_p,true);
     return CG_p;
 }
 
@@ -234,19 +234,20 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
     CGraph CG_p = MakeMultiGraph(n,srcs,dsts);
 
     // Now construct a simple version of this graph by ignoring the multiplicity
-    CGraph CG_p_s = MakeSimpleGraph(n,edge_list);
+//    CGraph CG_p_s = MakeSimpleGraph(n,edge_list);
 
     // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
     Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
+    delCGraph(CG_p);
     double scale = 1.0 / pow(p,3);
     double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
 //    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
 
     // Count the exact number of triangles in the sparsified simple graph CG_p_s and scale it up.
-    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p_s);
-    double scale_s = 1.0 / pow(p,3);
-    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
-//    printf ("Simple : %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
+//    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p_s);
+//    double scale_s = 1.0 / pow(p,3);
+//    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
+////    printf ("Simple : %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
 
 
     Estimates return_estimate = {};

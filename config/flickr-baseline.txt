@@ -24,13 +24,13 @@
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
 #######
-input_files=graphs/graph_in_edges_format/soc-flickr.edges
-triangle_count=58771288
+input_files=graphs/graph_in_edges_format/soc-flickr-und.edges
+triangle_count=548658705,55606428
 seed_count=1
-#sparsification_prob=
-sparsification_prob=0.175,0.2
+#sparsification_prob=0.01
+sparsification_prob=0.007,0.008,0.009
 subsample_prob=0.05
 no_of_repeats=100
 algo_names=EstTriByUniformSampling
-print_to_console=true
+print_to_console=false
 print_to_file=true
