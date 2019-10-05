@@ -9,7 +9,7 @@
 # print_to_console: default value true
 # print_to_file: default value false
 ##### Some example graphs and their true triangle count:
-# soc-flickr.edges = 58,771,288
+# soc-flickr.edges = 58771288
 # soc-flickr-und.edges = 548658705
 # soc-friendster.edges = 4173724142
 # soc-livejournal.edges = 83552703
@@ -24,11 +24,11 @@
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
 #######
-input_files=graphs/graph_in_edges_format/soc-flickr-und.edges
-triangle_count=548658705
+input_files=graphs/graph_in_edges_format/soc-flickr.edges
+triangle_count=58771288
 seed_count=1
 #sparsification_prob=0.01
-sparsification_prob=0.007,0.008,0.009
+sparsification_prob=0.01
 subsample_prob=0.05
 no_of_repeats=100
 algo_names=EstTriByRWandWghtedSampling

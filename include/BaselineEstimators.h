@@ -5,6 +5,8 @@
 #ifndef SUBGRAPHCOUNT_BASELINEESTIMATORS_H
 #define SUBGRAPHCOUNT_BASELINEESTIMATORS_H
 
+#include <set>
+
 #include "TriangleEstimators.h"
 
 bool IsTrue (bool b) {return b;}

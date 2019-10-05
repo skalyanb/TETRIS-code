@@ -82,8 +82,8 @@ void WriteHeaderInOutput(FILE *f, Parameters params, CGraph *cg, Count triangle_
     fprintf(f, "########################\n");
     fprintf(f, "vertices,edges,triangles\n");
     fprintf(f, "%lld,%lld,%lld\n", cg->nVertices, cg->nEdges, triangle_count);
-    fprintf(f, "no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob\n");
-    fprintf(f, "%d,%lld,%lld,%lld,%lf\n",params.no_of_repeat, params.seed_count, params.walk_length,
+    fprintf(f, "no_of_repeat,seed_count,first_seed,walk_length,subsample_size,sparsification_prob\n");
+    fprintf(f, "%d,%lld,%lld,%lld,%lld,%lf\n",params.no_of_repeat, params.seed_count, params.seed_vertices[0], params.walk_length,
             params.subsample_size, params.sparsification_prob);
 
 }

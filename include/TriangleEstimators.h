@@ -11,7 +11,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
-#include <set>
+#include <unordered_set>
 #include <utility>
 #include <string>
 #include <ctime>
@@ -62,8 +62,8 @@ struct OrderedEdge {
 struct OrderedEdgeCollection {
     EdgeIdx no_of_edges; // No of edges in the collection
     std::vector<OrderedEdge> edge_list; // The list of edges
-    std::set<EdgeIdx> visited_edge_set; // The set of unique edges in the collection
-    std::set<VertexIdx> visited_vertex_set; // The set of unique vertices in the collection
+    std::unordered_set<EdgeIdx> visited_edge_set; // The set of unique edges in the collection
+    std::unordered_set<VertexIdx> visited_vertex_set; // The set of unique vertices in the collection
 };
 
 // A structure to hold the estimated triangle count and the fraction of the graph seen in the process by an estimator.
@@ -152,8 +152,12 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
     std::vector<OrderedEdge> edge_list;
 
     // Keep track of the vertices and edges seen so far by the random walk
-    std::set<EdgeIdx> visited_edge_set;
-    std::set<VertexIdx> visited_vertex_set;
+    std::unordered_set<EdgeIdx> visited_edge_set;
+    std::unordered_set<VertexIdx> visited_vertex_set;
+
+    std::vector<EdgeIdx> visited_edge_list;
+    std::vector<VertexIdx> visited_vertex_list;
+
 
     // Initialize a uniform distribution for generating seed vertices
     //std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
@@ -201,8 +205,11 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
             edge_list.push_back(OrderedEdge{u, v, random_nbor_edge, low_deg});
 
             // Collect the distinct edges and distinct vertices visited so far in a set
-            visited_edge_set.insert(random_nbor_edge);
-            visited_vertex_set.insert(parent);
+//            visited_edge_set.insert(random_nbor_edge);
+//            visited_vertex_set.insert(parent);
+
+            visited_edge_list.emplace_back(random_nbor_edge);
+            visited_vertex_list.emplace_back(parent);
 
             // The random walk proceeds with the vertex child
             parent = child;
@@ -217,6 +224,14 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
 
     // Create return structure for this function.
     // The number of edges produced by the random walk is walk_length;
+    std::copy(visited_edge_list.begin(),
+              visited_edge_list.end(),
+              std::inserter(visited_edge_set, visited_edge_set.end()));
+
+    std::copy(visited_vertex_list.begin(),
+              visited_vertex_list.end(),
+              std::inserter(visited_vertex_set, visited_vertex_set.end()));
+
     OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
 //    printf("Random walk: walk length = %lld ",walk_length);
 //    printf("Edges Seen=%lu, Vertices Seen=%lu\n",visited_edge_set.size(),visited_vertex_set.size());
