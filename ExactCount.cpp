@@ -28,6 +28,6 @@ int main(int argc, char *argv[]) {
     printf("Converted to CSR\n");
 
     Estimates out = CountExactTriangles(&cg);
-    std::cout << out.triangle_estimate ;
+    std::cout << "#Vertice =" << cg.nVertices << " #Edges =" << cg.nEdges << " #Triangles ="  << out.triangle_estimate  <<"\n";
     return 0;
 }
