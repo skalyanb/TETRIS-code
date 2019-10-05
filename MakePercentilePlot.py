@@ -117,14 +117,14 @@ if __name__ == "__main__":
     # x_max = 1.1
 
 
-    # file_name = "soc-sinaweibo"
-    # x_max = 8
+    file_name = "soc-sinaweibo"
+    x_max = 1.1
 
     # file_name = "soc-flickr"
     # x_max = 1.1
 
-    file_name = "soc-twitter-konect"
-    x_max = 0.11
+    # file_name = "soc-twitter-konect"
+    # x_max = 0.11
 
     # file_name = "soc-livejournal"
     # x_max = 1.1

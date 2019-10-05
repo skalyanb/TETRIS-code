@@ -40,6 +40,7 @@ using namespace Escape;
 struct Parameters {
     std::string filename;
     VertexIdx seed_count = 1;
+    std::vector<VertexIdx > seed_vertices;
     EdgeIdx walk_length;
     EdgeIdx subsample_size;
     int no_of_repeat = 1;
@@ -155,12 +156,13 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
     std::set<VertexIdx> visited_vertex_set;
 
     // Initialize a uniform distribution for generating seed vertices
-    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
+    //std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
 
     // Perform a random walk for seed_count many times
     for (VertexIdx sC = 0; sC < seed_count; sC++) {
         // Pick a random seed vertex
-        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        //VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        VertexIdx seed = params.seed_vertices[sC]; // TODO: verify randomness
         VertexIdx parent, child;
         parent = seed;
         // Perform a random walk of length walk_length from the seed vertex
@@ -171,10 +173,11 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
             // We continue this process for certain no of times before giving up and continuing with the run
             int attempt = 0;
             while (deg_of_parent == 0 && attempt < 1000) {
-                printf("BAd luck! Trying again %d\n", attempt);
-                parent = dist_seed_vertex(mt);
-                deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
-                attempt++;
+                printf("BAd luck! Isolated vertex! Quitting %d\n", attempt);
+                exit(-2);
+                //parent = dist_seed_vertex(mt);
+                //deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
+                //attempt++;
             }
 
             // Take a step of the random walk
@@ -204,8 +207,11 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
             // The random walk proceeds with the vertex child
             parent = child;
             // If {u,v} is an isolated edge, then we will stuck here: so find a different seed and continue from there
-            if (deg_of_child == 1 && deg_of_parent == 1)
-                parent = dist_seed_vertex(mt);
+            if (deg_of_child == 1 && deg_of_parent == 1) {
+                printf("BAd luck! Isolated edge. Estimates will be incorrect.\n");
+                //parent = dist_seed_vertex(mt);
+            }
+
         }
     }
 

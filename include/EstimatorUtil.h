@@ -120,6 +120,17 @@ template <typename TF>
 void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count, TF func) {
     std::vector<Estimates> estimates;
 
+    // We fix the seed vertices and for run params.no_of_repeat manyt iterations with the
+    // seed vertex remaining fixed.
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    VertexIdx n = cg->nVertices;
+    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
+    for (VertexIdx sC=0; sC < params.seed_count; sC++){
+        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        params.seed_vertices.emplace_back(seed);
+    }
+
     for (Count i = 0; i < params.no_of_repeat; i++) {
         Estimates est = func(cg, params);
         estimates.push_back(est);
