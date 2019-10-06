@@ -8,6 +8,7 @@
 # algo_names: Multiple options can be provided with comma seperated.
 # print_to_console: default value true
 # print_to_file: default value false
+# degree_bin_seed=false  ; if true, then the seed vertex will be randomly selected accorss various degree bins
 ##### Some example graphs and their true triangle count:
 # soc-flickr.edges = 58771288
 # soc-flickr-und.edges = 548658705
@@ -24,13 +25,14 @@
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
 #######
-input_files=graphs/graph_in_edges_format/soc-flickr.edges
-triangle_count=58771288
+input_files=graphs/graph_in_edges_format/soc-flickr-und.edges
+triangle_count=548658705
 seed_count=1
 #sparsification_prob=0.01
-sparsification_prob=0.01
+sparsification_prob=0.006,0.008
 subsample_prob=0.05
 no_of_repeats=100
 algo_names=EstTriByRWandWghtedSampling
 print_to_console=false
 print_to_file=true
+degree_bin_seed=true

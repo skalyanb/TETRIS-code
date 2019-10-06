@@ -22,7 +22,7 @@ struct config_params{
     vector <string> algo_names;
     bool print_to_console =true;
     bool print_to_file=false;
-
+    bool degree_bin_seed=false;
 };
 
 void ParseToken(config_params& cfp, string key, string val) {
@@ -86,6 +86,16 @@ void ParseToken(config_params& cfp, string key, string val) {
             std::cout << "Unknow token encountered \n" ;
         }
     }
+    else if (key == "degree_bin_seed") {
+        if (val == "true")
+            cfp.degree_bin_seed = true;
+        else if (val == "false")
+            cfp.degree_bin_seed = false;
+        else {
+            std::cout << "Unknow token encountered \n" ;
+        }
+    }
+
     else
         std::cout << "Unknow token encountered \n" ;
 }

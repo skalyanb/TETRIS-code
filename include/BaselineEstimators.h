@@ -22,7 +22,7 @@ CGraph MakeMultiGraph (VertexIdx n, std::vector<VertexIdx > srcs, std::vector<Ve
     std::copy(std::begin(srcs), std::end(srcs), G_p.srcs);
     std::copy(std::begin(dsts), std::end(dsts), G_p.dsts);
 
-    // Convert the graph into CSR representation
+    // Convert the graph into CSR representation. The second parameters requests for in-pace operation.
     CGraph CG_p = makeCSR(G_p,true);
     return CG_p;
 }
@@ -200,10 +200,10 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
     std::vector<VertexIdx > srcs;
     std::vector<VertexIdx > dsts;
 
-    std::set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
-    std::set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
+    std::unordered_set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
+    std::unordered_set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
 
-    std::set<std::pair <VertexIdx,VertexIdx>> edge_list; // This list will be used to track distinct edges in the random walk.
+//    std::set<std::pair <VertexIdx,VertexIdx>> edge_list; // This list will be used to track distinct edges in the random walk.
 
     for (EdgeIdx i = 0; i < edges_in_G_p ; i++) {
         EdgeIdx e = unif_rand_edge(mt);
@@ -223,8 +223,8 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
         dsts.emplace_back(src);
         ++nEdges;
 
-        edge_list.insert(std::make_pair(src,dst));
-        edge_list.insert(std::make_pair(dst,src));
+//        edge_list.insert(std::make_pair(src,dst));
+//        edge_list.insert(std::make_pair(dst,src));
 
         visited_vertex_set.insert(src);
         visited_vertex_set.insert(dst);
@@ -279,12 +279,12 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
     std::mt19937 mt(rd());
 
     // Keep track of the vertices and edges seen so far by the random walk
-    std::set<EdgeIdx> visited_edge_set;
-    std::set<VertexIdx> visited_vertex_set;
+    std::unordered_set<EdgeIdx> visited_edge_set;
+    std::unordered_set<VertexIdx> visited_vertex_set;
     EdgeIdx nEdges = 0;
     std::vector<VertexIdx > srcs;
     std::vector<VertexIdx > dsts;
-    std::set<std::pair <VertexIdx,VertexIdx>> edgeList; // This list will be used to track distinct edges in the random walk.
+//    std::set<std::pair <VertexIdx,VertexIdx>> edgeList; // This list will be used to track distinct edges in the random walk.
 
     // Initialize a uniform distribution for generating seed vertices
     std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
@@ -324,8 +324,8 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
             dsts.emplace_back(parent);
             ++nEdges;
 
-            edgeList.insert(std::make_pair(parent, child));
-            edgeList.insert(std::make_pair(child, parent));
+//            edgeList.insert(std::make_pair(parent, child));
+//            edgeList.insert(std::make_pair(child, parent));
 
             // Collect the distinct edges and distinct vertices visited so far in a set
             visited_edge_set.insert(random_nbor_edge);
@@ -347,22 +347,23 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
     CGraph CG_p = MakeMultiGraph(n, srcs,dsts);
 
     // Create a simple graph from the edges in the random walk
-    CGraph CG_p_s = MakeSimpleGraph(n, edgeList);
+//    CGraph CG_p_s = MakeSimpleGraph(n, edgeList);
 
 
     //p = 2.0*visited_edge_set.size() / m;
     // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
-    Estimates triangles_in_Gp = CountExactTriangles(&CG_p_s);
+    Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
+    delCGraph(CG_p);
     double scale = 1.0 / pow(p,3);
     double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
 //    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,58771288.0/triangles_in_Gp.triangle_estimate *1.0);
 //    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
 
     // Count the exact number of triangles in the sparsified graph CG_p_s and scale it up.
-    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p);
-    double scale_s = 1.0 / pow(p,3);
-    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
-    double another_scale = 1.0* CG_p_s.nEdges / m;
+//    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p_s);
+//    double scale_s = 1.0 / pow(p,3);
+//    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
+//    double another_scale = 1.0* CG_p_s.nEdges / m;
 //    printf("p=%lf,  scale = %lf , desired scale = %lf, another scale=%lf\n",
 //            p,scale_s,58771288.0/triangles_in_Gp_s.triangle_estimate *1.0, 1.0/pow(another_scale,3));
 //    printf ("Simple: %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);

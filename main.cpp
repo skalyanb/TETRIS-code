@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <vector>
+#include <math.h>
 
 #include "include/GraphIO.h"
 #include "include/Graph.h"
@@ -62,38 +63,96 @@ int main(int argc, char *argv[]) {
         for (auto algo_name : cfp.algo_names) {
             params.algo_name = algo_name;
 
-            for (auto seed_count: cfp.seed_count) {
-                params.seed_count = seed_count;
+            for (auto sparsification_prob : cfp.sparsification_prob) {
+                params.sparsification_prob = sparsification_prob;
+                params.walk_length = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
+                params.subsample_size = params.walk_length * cfp.subsample_prob;
+                EdgeIdx triangle_count = cfp.triangle_count[i];
 
-                for (auto sparsification_prob : cfp.sparsification_prob) {
-                    params.sparsification_prob = sparsification_prob;
-                    params.walk_length = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
-                    params.subsample_size = params.walk_length * cfp.subsample_prob;
-                    EdgeIdx triangle_count = cfp.triangle_count[i];
+                for (auto seed_count: cfp.seed_count) {
+                    params.seed_count = seed_count;
 
-                    // Our Algorithm
-                    if (algo_name == "EstTriByRWandWghtedSampling")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByRWandWghtedSampling);
-                    // Baseline: sample an edge and count the number of triangles incident on it. Then scale.
-                    else if (algo_name == "EstTriByEdgeSampleAndCount")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByEdgeSampleAndCount);
-                    // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
-                    else if (algo_name == "EstTriByRWAndCountPerEdge")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByRWAndCountPerEdge);
-                    // Baseline: do a random walk and count the teiangles in induces multi-graph. Scale.
-                    else if (algo_name == "EstTriByRW")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByRW);
-                    // Sample an edge, sample a neighbor and estimate the teiangles incident on the neighbor. Scale up.
-                    else if (algo_name == "EstTriByRWandNborSampling")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByRWandNborSampling);
-                    // Sample each edge with probability p and count traingles in the subsampled graph. Scale by 1/p^3.
-                    else if (algo_name == "EstTriBySparsification")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriBySparsification);
-                        // Uniformly Sample edges, and count the number of triangles in the multi-graph.
-                    else if (algo_name == "EstTriByUniformSampling")
-                        TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
-                    else
-                        std::cout << "Unknown algorithm option. \n";
+                    // We fix the seed vertices and for run params.no_of_repeat many iterations with the
+                    // seed vertex remaining fixed.
+                    std::random_device rd;
+                    std::mt19937 mt(rd());
+                    // If degree_bin_seed is false, then we just need to
+                    // sample uniform random seed vertex from the entire graph.
+                    // THIS IS THE NORMAL MODE IN WHICH ALL BASELINE AND OUR
+                    // ALGORITHMS ARE EXECUTED
+                    if (cfp.degree_bin_seed == false) {
+                        VertexIdx n = cg.nVertices;
+                        std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
+                        for (VertexIdx sC = 0; sC < params.seed_count; sC++) {
+                            VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+                            params.seed_vertices.emplace_back(seed);
+                        }
+                        // Our Algorithm
+                        if (algo_name == "EstTriByRWandWghtedSampling2")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByRWandWghtedSampling);
+                            // Baseline: sample an edge and count the number of triangles incident on it. Then scale.
+                        else if (algo_name == "EstTriByEdgeSampleAndCount")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByEdgeSampleAndCount);
+                            // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
+                        else if (algo_name == "EstTriByRWAndCountPerEdge")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByRWAndCountPerEdge);
+                            // Baseline: do a random walk and count the teiangles in induces multi-graph. Scale.
+                        else if (algo_name == "EstTriByRW")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByRW);
+                            // Sample an edge, sample a neighbor and estimate the teiangles incident on the neighbor. Scale up.
+                        else if (algo_name == "EstTriByRWandNborSampling")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByRWandNborSampling);
+                            // Sample each edge with probability p and count traingles in the subsampled graph. Scale by 1/p^3.
+                        else if (algo_name == "EstTriBySparsification")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriBySparsification);
+                            // Uniformly Sample edges, and count the number of triangles in the multi-graph.
+                        else if (algo_name == "EstTriByUniformSampling")
+                            TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
+                        else
+                            std::cout << "Unknown algorithm option. \n";
+                    }
+                    // Otherwise, we iterate over all the vertices, and sample 5 vertex from each degree range
+                    // to figure out the degree range, we take the log of the degree.
+                    // WE ONLY NEED TO DO THIS FOR OUR ALGORITHM.
+                    else {
+                        params.seed_vertices.emplace_back(-1); // dummy place holder for now
+                        VertexIdx num_of_bucket = floor(log10(cg.nVertices));
+                        std::vector<std::vector<VertexIdx >> deg_bins(num_of_bucket);
+                        std::vector<std::vector<VertexIdx >> random_seeds(num_of_bucket);
+                        for (VertexIdx v = 0; v < cg.nVertices; v++) {
+                            VertexIdx deg = cg.degree(v);
+                            if (deg != 0) {
+                                VertexIdx bucket_id = floor(log10(deg));
+                                deg_bins[bucket_id].emplace_back(v);
+                            }
+                        }
+                        // Now sample 5 vertices uniformly at random from each bin (with replacement)
+                        for (int nb = 0; nb < num_of_bucket; nb++) {
+                            if (!deg_bins[nb].empty()) {
+                                std::uniform_int_distribution<VertexIdx> dist_bucket_seed_vertex(0, deg_bins[nb].size() - 1);
+                                for (int j = 0; j < 5; j++) {
+                                    VertexIdx random_seed = dist_bucket_seed_vertex(mt);
+                                    random_seeds[nb].emplace_back(deg_bins[nb][random_seed]);
+                                }
+                            }
+                        }
+                        // Clear the excess memory created by this seeding process.
+                        std::vector<std::vector<VertexIdx >>().swap(deg_bins);
+                        if (algo_name == "EstTriByRWandWghtedSampling"){
+                            for (int nb = 0; nb < num_of_bucket; nb++) {
+                                if (!random_seeds[nb].empty()) {
+                                    for (int j = 0; j < 5; j++) {
+                                        VertexIdx seed = random_seeds[nb][j];
+                                        params.seed_vertices[0]= seed;
+                                        params.algo_name = "EstTriByRWandWghtedSampling_" + std::to_string(nb);
+                                        TriangleEstimator(&cg, params, triangle_count, EstTriByRWandWghtedSampling);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                            std::cout << "Unknown algorithm option. \n";
+                    }
                 }
             }
 
@@ -101,170 +160,3 @@ int main(int argc, char *argv[]) {
     }
     return 0;
 }
-            //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
-
-//            params.algo_name = "EstTriByRWWfgtdSamp";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
-
-            //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriBySparsification);
-
-            //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByUniformSampling);
-
-            //if (cfp.algo_name = "EstTriByEdgeSampleAndCount")
-//            params.algo_name = cfp.algo_names[0];
-//            TriangleEstimator(&cg, params, cfp.triangle_count[i], EstTriByEdgeSampleAndCount);
-
-//            params.algo_name = "EstTriByRW";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRW);
-
-//            params.algo_name = "EstTriByRWAndCountPerEdge";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndCountPerEdge);
-
-//            params.algo_name = "EstTriByRWAndNeighborSample";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
-
-//            params.algo_name = "EstTriByRWAndNbrSample";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandNborSampling);
-
-//            CountExactTriangles (&cg);
-
-//        }
-//    }
-
-
-
-//    // Default Parameter Settings
-//    std::string filename;
-//    VertexIdx seed_count = 1;
-//    double sparsification_prob = 0.1;
-//
-//    EdgeIdx walk_length;
-//    EdgeIdx subsample_size;
-//    int no_of_repeat = 10;
-//    std::string algo_name = "none!";
-//    bool print_to_console = false;
-//    bool print_to_file = true;
-//
-//    int algo_code = 1;
-////
-//    if (argc==1) // No config file provided, execute with default paramaters
-//    {
-//        std::cout << "Usage Options:\n\n";
-//        std::cout << "1. ./SubgraphCount input_file_path out_directory\n\n";
-//        std::cout << "2. ./SubgraphCount input_file_path out_directory no_of_repeats seed_count "
-//                     "sparsification_prob algo_code \n\n";
-//        std::cout << "(Option 1 runs with default parameters.)\n\n";
-//    }
-//    if (argc ==3 ) // Usage: ./SubgraphCount input_file_path out_directory
-//    {
-//        if (loadGraph(argv[1], g, 1, IOFormat::escape))
-//            exit(1);
-//    }
-//    else if (argc == 7) // command line parameters are passed
-//    {
-//        if (loadGraph(argv[1], g, 1, IOFormat::escape))
-//            exit(1);
-//
-//        printf("#Vertices = %lld, #Edges = %lld\n", g.nVertices, g.nEdges);
-//
-//        printf("Loaded graph from %s\n", argv[1]);
-//        CGraph cg = makeCSR(g);
-//        cg.sortById();
-//        printf("Converted to CSR\n");
-//
-//        std::string filename(argv[1]);
-//
-//        noOfRepeat = std::strtol(argv[2],NULL,10);
-//
-//        EdgeIdx walkLength = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
-//        EdgeIdx subSampleSize = walkLength / 20;
-//        Parameters params = {filename, seedCount, walkLength, subSampleSize, noOfRepeat, sparsification_prob};
-//    }
-//
-
-//    std::vector<std::string> graph_path, graph_out_dir;
-//    std::vector<Count> trueTriangleCount;
-//
-//    graph_path.push_back ("graphs/graph_in_edges_format/small-test.edges");
-//    trueTriangleCount.push_back(8); // flickr
-
-//    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr.edges");
-//    trueTriangleCount.push_back(58771288); // flickr
-//
-//    graph_path.push_back ("graphs/graph_in_edges_format/socfb-A-anon.edges");
-//    trueTriangleCount.push_back(55606428); //socfb-A- anon
-//
-//    graph_path.push_back ("graphs/graph_in_edges_format/soc-livejournal.edges");
-//    trueTriangleCount.push_back(83552703); //livejournal
-//
-//    graph_path.push_back ("graphs/graph_in_edges_format/soc-flickr-und.edges");
-//    trueTriangleCount.push_back(548658705); //flick-und
-//
-//    graph_path.push_back("graphs/graph_in_edges_format/soc-orkut.edges");
-//    trueTriangleCount.push_back(524643952);  // orkut
-
-//    graph_path.push_back("graphs/graph_in_edges_format/soc-sinaweibo.edges");
-//
-    // The true triangle count: get by running exact count algorithm
-    //soc-orkut ==524,643,952; soc-flicks == 58,771,28; soc-flickr-und = 548,658,705; livejournal = 83,552,703;
-    // socfb-A-anon =  55,606,428 soc-sinaweibo.edges = 212,977,684
-
-//    if (loadGraph(argv[1], g, 1, IOFormat::escape))
-//        exit(1);
-//    for (int i = 0; i < graph_path.size(); i++) {
-//
-//        if (loadGraph(graph_path[i].c_str(), g, 1, IOFormat::escape))
-//            exit(1);
-//
-//        printf("#Vertices = %lld, #Edges = %lld\n", g.nVertices, g.nEdges);
-//
-//        printf("Loaded graph from %s\n", graph_path[i].c_str());
-//        CGraph cg = makeCSR(g);
-//        cg.sortById();
-//        printf("Converted to CSR\n");
-//
-//        std::string filename(graph_path[i]);
-//        int noOfRepeat = 1;
-//
-////        std::vector <double> sparsification_prob_list {0.002,0.004,0.006,0.008,0.01,
-////                                                       0.025,0.05,0.075,
-////                                                       0.1,0.2,0.3,0.4};
-//        std::vector <double> sparsification_prob_list {0.05};
-//
-//        for ( auto sparsification_prob : sparsification_prob_list) {
-//            // Set up input parameters for weighted sampling estimators
-//            VertexIdx seedCount = 1;
-//            EdgeIdx walkLength = g.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
-//            EdgeIdx subSampleSize = walkLength / 20;
-//            Parameters params = {filename, seedCount, walkLength, subSampleSize, noOfRepeat, sparsification_prob};
-//
-//            //TriangleEstimator(&cg, params_1, params_2, trueTriangleCount[i]);
-//
-////            params.algo_name = "EstTriByRWWfgtdSamp";
-////            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandWghtedSampling);
-//
-//            //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriBySparsification);
-//
-//            //TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByUniformSampling);
-//
-//            params.algo_name = "EstTriByEdgeSampleAndCount";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByEdgeSampleAndCount);
-//
-//            params.algo_name = "EstTriByRW";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRW);
-//
-////            params.algo_name = "EstTriByRWAndCountPerEdge";
-////            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndCountPerEdge);
-//
-//            params.algo_name = "EstTriByRWAndNeighborSample";
-//            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWAndNeighborSample);
-//
-////            params.algo_name = "EstTriByRWAndNbrSample";
-////            TriangleEstimator(&cg, params, trueTriangleCount[i], EstTriByRWandSimpleSampling);
-//
-////            CountExactTriangles (&cg);
-//
-//        }
-//    }
-//    return 0;
-//}
