@@ -165,7 +165,7 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
     for (VertexIdx sC = 0; sC < seed_count; sC++) {
         // Pick a random seed vertex
         //VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
-        VertexIdx seed = params.seed_vertices[sC]; // TODO: verify randomness
+        VertexIdx seed = params.seed_vertices[sC];
         VertexIdx parent, child;
         parent = seed;
         // Perform a random walk of length walk_length from the seed vertex

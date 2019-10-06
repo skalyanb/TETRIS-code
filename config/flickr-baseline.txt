@@ -18,6 +18,8 @@
 # soc-sinaweibo.edges = 212977684
 # soc-twitter-konect.edges = 34824916864
 # socfb-A-anon.edges = 55606428
+# web-indochina-2004-all.edges = 60115561372
+# web-cc12-PayLevelDomain.edges = 29923075742
 ##### Algo_names
 # Our algo: EstTriByRWandWghtedSampling
 # Baseline:
@@ -25,8 +27,8 @@
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
 #######
-input_files=graphs/graph_in_edges_format/soc-flickr-und.edges
-triangle_count=548658705
+input_files=graphs/graph_in_edges_format/soc-orkut.edges,graphs/graph_in_edges_format/web-indochina-2004-all.edges
+triangle_count=524643952,60115561372
 seed_count=1
 #sparsification_prob=0.01
 sparsification_prob=0.006,0.008

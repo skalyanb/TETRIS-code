@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
                 for (auto seed_count: cfp.seed_count) {
                     params.seed_count = seed_count;
-
+                    params.seed_vertices.clear();
                     // We fix the seed vertices and for run params.no_of_repeat many iterations with the
                     // seed vertex remaining fixed.
                     std::random_device rd;
