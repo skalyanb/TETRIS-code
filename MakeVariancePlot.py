@@ -12,7 +12,7 @@ def skip_rows (index):
         return True
     return False
 
-def plot_estimates (data_dir, out_filename, x_max):
+def plot_estimates (data_dir, out_filename, x_max, title_info):
     X=[]
     Y=[]
     max_err_percent = 20
@@ -20,6 +20,8 @@ def plot_estimates (data_dir, out_filename, x_max):
 
     max_band_percent = 5
     min_band_percent = 5
+
+    triangle_count = 0
 
     for i, file in enumerate(os.listdir(data_dir)):
         path = os.path.join(data_dir, file)
@@ -91,25 +93,40 @@ def plot_estimates (data_dir, out_filename, x_max):
 
 
     #add title
-    ax.set_title('Accuracy vs Observed Graph')
+    ax.set_title('Accuracy vs Observed Graph\n'+title_info)
 
     #add x and y labels
     ax.set_xlabel('Percentage of Edges Visited')
-    ax.set_ylabel('Triangle Estimates')
+    ax.set_ylabel('Triangle Count')
 
     #show plot
-    plt.show()
+    #plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
 
-    fig.savefig("output/plots/variance/"+out_filename+timestr+".eps",format='eps')
+    fig.savefig("output/plots/variance/fixed_seed/"+out_filename+"-"+timestr+".eps",format='eps')
 
 
 
 
 if __name__ == "__main__":
 
-    file_name = "soc-flickr-und"
-    x_max = 20
+    x_max = 1.1
+
+    file_name = []
+    title_info = []
+
+    # f_name = "soc-flickr-und"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 16M edges, 1.7M vertices")
+
+    f_name = "socfb-A-anon"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 24M edges, 3M vertices")
+
+
+    # f_name = "soc-orkut"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 106M edges, 3M vertices")
 
     # file_name = "soc-sinaweibo"
     # x_max = 8
@@ -126,10 +143,11 @@ if __name__ == "__main__":
     # file_name = "socfb-A-anon"
     # x_max = 12
 
-    data_dir = "output/plot_data/variance_plot_data/"+file_name+".edges/EstTriByRWandWghtedSampling/"
-    out_filename = file_name
+    for i,file in enumerate(file_name):
+        data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/fixed_seed/"
+        out_filename = file
 
-    plot_estimates(data_dir,out_filename,x_max)
+        plot_estimates(data_dir,out_filename,x_max,title_info[i])
 
     #plot_comparison(data_dir_1,data_dir_2)
 

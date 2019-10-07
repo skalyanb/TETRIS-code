@@ -6,6 +6,7 @@
 #define SUBGRAPHCOUNT_BASELINEESTIMATORS_H
 
 #include <set>
+#include <unordered_map>
 
 #include "TriangleEstimators.h"
 
@@ -13,8 +14,49 @@ bool IsTrue (bool b) {return b;}
 
 CGraph MakeMultiGraph (VertexIdx n, std::vector<VertexIdx > srcs, std::vector<VertexIdx > dsts) {
 
+    // First rename the vertices in srcs and dsts to figure out how many vertices are actually
+    // and remove those vertice.
+
+    // Create a map that will map every vertex id the in the input file to an integer in the output file
+    std::unordered_map <VertexIdx, VertexIdx> dict;
+    dict.reserve(100000000); // 100M
+    VertexIdx index = 0;
+
+    for (VertexIdx idx=0; idx < srcs.size(); idx++) {
+        VertexIdx node1 = srcs[idx];
+        VertexIdx node2 = dsts[idx];
+        // Find if the vertices are already present in the dictionary
+        auto it1 = dict.find (node1);
+        auto it2 = dict.find (node2);
+
+        // If the first vertex is present then replace the node1 with the corresponding node id;
+        // Otherwise create a new node for this vertex.
+        if (it1!= dict.end())
+            node1 = it1->second;
+        else {
+            dict[node1] = index;
+            node1 = index;
+            index++;
+        }
+        // Repeat the same for the second node
+        if (it2!= dict.end())
+            node2 = it2->second;
+        else {
+            dict[node2] = index;
+            node2 = index;
+            index++;
+        }
+        //Add the edge (node1,node2)
+        srcs[idx] = node1;
+        dsts[idx] = node2;
+    }
+
+    //Sanity check
+    if (dict.size()!= index)
+        printf("Dict size=%lu, index = %lld, Something went wrong.",dict.size(),index);
+
     Graph G_p;
-    G_p.nVertices = n;
+    G_p.nVertices = dict.size();
     G_p.nEdges = srcs.size();
     G_p.srcs = new VertexIdx[G_p.nEdges];
     G_p.dsts = new VertexIdx[G_p.nEdges];
@@ -251,7 +293,6 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
 //    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
 ////    printf ("Simple : %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
 
-
     Estimates return_estimate = {};
     return_estimate.triangle_estimate = triangleEstimate;
     return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
@@ -292,7 +333,8 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
     // Perform a random walk for seed_count many times
     for (VertexIdx sC = 0; sC < seed_count; sC++) {
         // Pick a random seed vertex
-        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        //VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        VertexIdx seed = params.seed_vertices[sC];
         VertexIdx parent, child;
         parent = seed;
         // Perform a random walk of length walk_length from the seed vertex
@@ -356,7 +398,7 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
     delCGraph(CG_p);
     double scale = 1.0 / pow(p,3);
     double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
-//    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,58771288.0/triangles_in_Gp.triangle_estimate *1.0);
+    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,548658705.0/triangles_in_Gp.triangle_estimate *1.0);
 //    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
 
     // Count the exact number of triangles in the sparsified graph CG_p_s and scale it up.
@@ -419,11 +461,11 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
     std::vector<VertexIdx > dsts;
     double running_count = 0;
 
-//    std::set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
-//    std::set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
+    std::unordered_set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
+    std::unordered_set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
 
-    std::vector<bool > visited_edge_flag(m,false), visited_with_nbor_edge_flag(m,false);
-    std::vector<bool > visited_vertex_flag(n, false), visited_with_nbor_vertex_flag(n,false);
+//    std::vector<bool > visited_edge_flag(m,false), visited_with_nbor_edge_flag(m,false);
+//    std::vector<bool > visited_vertex_flag(n, false), visited_with_nbor_vertex_flag(n,false);
 
 
     std::set<std::pair <VertexIdx,VertexIdx>> edge_list; // This list will be used to track distinct edges in the random walk.
@@ -446,22 +488,33 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
 
         running_count += TriangleByEdge(cg,e_struct);
 
-//        visited_vertex_set.insert(src);
-//        visited_vertex_set.insert(dst);
-//        visited_edge_set.insert(e);
-        // Collect the distinct edges and distinct vertices visited so far in a set
+        visited_vertex_set.insert(src);
+        visited_vertex_set.insert(dst);
+        visited_edge_set.insert(e);
+        // Now for the vertex with lesser degree, we visit all of its neighbors
+        // and all the incident edges on it
+        // we copy the lower degree vertex in src.
+
+        if (cg->degree(src) > cg-> degree(dst))
+            src = dst;
+        for (EdgeIdx idx = cg->offsets[src]; idx <cg->offsets[src+1];idx++ ) {
+            visited_vertex_set.insert(cg->nbors[idx]);
+            visited_edge_set.insert(idx);
+        }
+
+            // Collect the distinct edges and distinct vertices visited so far in a set
 //                visited_edge_set.insert(random_nbor_edge);
 //                visited_vertex_set.insert(parent);
-        visited_edge_flag[e] = true;
-        visited_vertex_flag[src] = true;
-        visited_vertex_flag[dst] = true;
+//        visited_edge_flag[e] = true;
+//        visited_vertex_flag[src] = true;
+//        visited_vertex_flag[dst] = true;
 
         // We also collect all the edges and distinct vertices assuming full neighbor access
 //                visited_with_nbor_edge_set.insert(random_nbor_edge);
 //                visited_with_nbor_vertex_set.insert(parent);
-        visited_with_nbor_edge_flag[e] =true;
-        visited_with_nbor_vertex_flag[src] = true;
-        visited_with_nbor_vertex_flag[dst] = true;
+//        visited_with_nbor_edge_flag[e] =true;
+//        visited_with_nbor_vertex_flag[src] = true;
+//        visited_with_nbor_vertex_flag[dst] = true;
 
 //                std::vector<VertexIdx > N_u, N_v;
 //                N_u.assign(cg->nbors+cg->offsets[parent],cg->nbors+cg->offsets[parent]+cg->degree(parent));
@@ -469,16 +522,15 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
 //                N_v.assign(cg->nbors+cg->offsets[child],cg->nbors+cg->offsets[child]+cg->degree(child));
 //                visited_with_nbor_vertex_set.insert(N_v.begin(),N_v.end());
 
-        for (EdgeIdx i = cg->offsets[src]; i <cg->offsets[src+1];i++ ) {
-//                    visited_with_nbor_edge_set.insert(i);
-            visited_with_nbor_edge_flag[i] = true;
-            visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
-        }
-        for (EdgeIdx i = cg->offsets[dst]; i <cg->offsets[dst+1];i++ ) {
-//                    visited_with_nbor_edge_set.insert(i);
-            visited_with_nbor_edge_flag[i] = true;
-            visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
-        }
+//        for (EdgeIdx idx = cg->offsets[src]; idx <cg->offsets[src+1];i++ ) {
+////                    visited_with_nbor_edge_set.insert(i);
+//            visited_with_nbor_edge_flag[i] = true;
+//            visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
+//        }
+//        for (EdgeIdx i = cg->offsets[dst]; i <cg->offsets[dst+1];i++ ) {
+////                    visited_with_nbor_edge_set.insert(i);
+//            visited_with_nbor_edge_flag[i] = true;
+//            visited_with_nbor_vertex_flag[cg->nbors[i]] = true;
 
     }
 
@@ -489,12 +541,14 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
 
     Estimates return_estimate = {};
     return_estimate.triangle_estimate = triangleEstimate;
-    VertexIdx edges_seen = std::count_if(visited_with_nbor_edge_flag.begin(),
-                                         visited_with_nbor_edge_flag.end(),
-                                         IsTrue);
-    VertexIdx vertices_seen = std::count_if(visited_with_nbor_vertex_flag.begin(),
-                                            visited_with_nbor_vertex_flag.end(),
-                                            IsTrue);
+//    VertexIdx edges_seen = std::count_if(visited_with_nbor_edge_flag.begin(),
+//                                         visited_with_nbor_edge_flag.end(),
+//                                         IsTrue);
+//    VertexIdx vertices_seen = std::count_if(visited_with_nbor_vertex_flag.begin(),
+//                                            visited_with_nbor_vertex_flag.end(),
+//                                            IsTrue);
+    VertexIdx edges_seen = visited_edge_set.size();
+    VertexIdx vertices_seen = visited_vertex_set.size();
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
     // Why the multiplication by 2? The fraction of edges seen is effectively

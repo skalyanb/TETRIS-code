@@ -107,11 +107,15 @@ Estimates CountExactTriangles (CGraph *cg)
     CDAG dag = degreeOrdered(&cg_relabel);
     (dag.outlist).sortById();
 
-    printf("Conversion comple. Going to count triangles now. \n");
+    //printf("Conversion comple. Going to count triangles now. \n");
     TriangleInfo info;
     info = betterWedgeEnumerator(&(dag.outlist));
     output.triangle_estimate = info.total;
 
+    // Free up the memory
+    delCGraph(dag.inlist);
+    delCGraph(dag.outlist);
+    delCGraph(cg_relabel);
     //printf ("  Triangle=%lld ",info.total);
     return output;
 }

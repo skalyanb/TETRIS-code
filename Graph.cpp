@@ -226,7 +226,6 @@ CGraph CGraph::renameByDegreeOrder() const {
     VertexIdx *mapping = new VertexIdx[nVertices];
     VertexIdx *inverse = new VertexIdx[nVertices];
 
-
     // Construct array of pairs, storing old vertex label and degree
     for (VertexIdx i = 0; i < nVertices; i++) {
         deg_info[i].first = i;
@@ -263,6 +262,9 @@ CGraph CGraph::renameByDegreeOrder() const {
                     1] = current; // all neighbors of new_label have been added, so we set offset for new_label+1
     }
 
+    delete[] mapping;
+    delete[] inverse;
+    delete[] deg_info;
     return ret;
 }
 
