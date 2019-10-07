@@ -51,25 +51,32 @@ def populate_data (data_dir):
 
 
 
-def plot_comparison(data_dir_1,data_dir_2,data_dir_3,data_dir_4, filename, title_info):
+def plot_comparison(data_dir, filename, title_info):
 
-    X_1, Y_1 = populate_data(data_dir_1)
+    X = []
+    Y= []
 
-    X_2, Y_2 = populate_data(data_dir_2)
-
-    X_3, Y_3 = populate_data(data_dir_3)
-
-    X_4, Y_4 = populate_data(data_dir_4)
+    for i,dir in enumerate(data_dir):
+        tempX, tempY = populate_data(data_dir)
+        X.append(tempX)
+        Y.append(tempY)
+    # X_1, Y_1 = populate_data(data_dir_1)
+    #
+    # X_2, Y_2 = populate_data(data_dir_2)
+    #
+    # X_3, Y_3 = populate_data(data_dir_3)
+    #
+    # X_4, Y_4 = populate_data(data_dir_4)
 
     #scatter plot
     fig, ax = plt.subplots()
-    ax.plot(X_1, Y_1, c='blue', marker='s', label='Our Algo')
+    ax.plot(X[0], Y[0], c='blue', marker='s', label='Our Algo')
 
-    ax.plot(X_2, Y_2, c='red', marker='o', label='UES-&-Count')
+    ax.plot(X[1], Y[1], c='red', marker='o', label='UES-&-Count')
 
-    ax.plot(X_3, Y_3, c='red', marker='^', label='RW-&-Count')
+    ax.plot(X[2], Y[2], c='red', marker='^', label='RW-&-Count')
 
-    ax.plot(X_4, Y_4, c='green', marker='D', label='UES-sparsify')
+    ax.plot(X[3], Y[3], c='green', marker='D', label='UES-sparsify')
 
     ax.set_xlim(2,20)
     ax.legend(loc='upper right')
@@ -84,29 +91,50 @@ def plot_comparison(data_dir_1,data_dir_2,data_dir_3,data_dir_4, filename, title
     ax.set_ylabel('Median Error % (100 runs)')
 
     #show plot
-    # plt.show()
+    plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
+    #fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
 
 if __name__ == "__main__":
 
-    # file_name = "soc-flickr"
-    # title_info = "soc-flickr: 6.4M edges, 514K vertices"
-    # x_min = 2
-    # x_max = 20
 
-    file_name = "soc-flickr-und"
-    title_info = "soc-flickr: 31M edges, 1.7M vertices"
-    x_min = 2
-    x_max = 20
+    file_name = []
+    title_info = []
 
+    # f_name = "soc-flickr-und"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 16M edges, 1.7M vertices")
 
-    data_dir_1 = "output/plot_data/comparison_plot_data/"+file_name +".edges/EstTriByRWandWghtedSampling/"
-    data_dir_2 = "output/plot_data/comparison_plot_data/"+file_name+".edges/EstTriByEdgeSampleAndCount/"
-    data_dir_3 = "output/plot_data/comparison_plot_data/"+file_name +".edges/EstTriByRWAndCountPerEdge/"
-    data_dir_4 = "output/plot_data/comparison_plot_data/"+file_name +".edges/EstTriByUniformSampling/"
-    filename = file_name + "-comparison-"
+    # f_name = "socfb-A-anon"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 24M edges, 3M vertices")
 
+    f_name = "soc-orkut"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 106M edges, 3M vertices")
 
-    plot_comparison(data_dir_1,data_dir_2,data_dir_3, data_dir_4, filename, title_info)
+    # f_name = "soc-sinaweibo"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 260M edges, 58M vertices")
+    #
+    # f_name = "soc-twitter-konect"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 1.2B edges, 41M vertices")
+    #
+    # f_name = "soc-friendster"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 1.8B edges, 65M vertices")
 
+    algo_list = []
+
+    algo_list.append("EstTriByRWandWghtedSampling")
+    algo_list.append("EstTriByEdgeSampleAndCount")
+    algo_list.append("EstTriByRWAndCountPerEdge")
+    algo_list.append("EstTriByUniformSampling")
+
+    for i,file in enumerate(file_name):
+        data_dir = []
+        out_filename = file + "-comparison-"
+        for j,algo in enumerate(algo_list):
+            data_dir.appned("output/plot_data/variance_plot_data/"+file+".edges/"+algo+"/fixed_seed/")
+        plot_comparison(data_dir, out_filename, title_info[i])

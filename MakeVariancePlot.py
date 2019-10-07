@@ -123,25 +123,21 @@ if __name__ == "__main__":
     file_name.append(f_name)
     title_info.append(f_name + ": 24M edges, 3M vertices")
 
+    f_name = "soc-orkut"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 106M edges, 3M vertices")
 
-    # f_name = "soc-orkut"
-    # file_name.append(f_name)
-    # title_info.append(f_name + ": 106M edges, 3M vertices")
+    f_name = "soc-sinaweibo"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 260M edges, 58M vertices")
 
-    # file_name = "soc-sinaweibo"
-    # x_max = 8
+    f_name = "soc-twitter-konect"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 1.2B edges, 41M vertices")
 
-    # file_name = "soc-flickr"
-    # x_max = 20
-
-    # file_name = "soc-twitter-konect"
-    # x_max = 0.11
-
-    # file_name = "soc-livejournal"
-    # x_max = 10
-
-    # file_name = "socfb-A-anon"
-    # x_max = 12
+    f_name = "soc-friendster"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 1.8B edges, 65M vertices")
 
     for i,file in enumerate(file_name):
         data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/fixed_seed/"

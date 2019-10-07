@@ -27,14 +27,14 @@
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
 #######
-input_files=graphs/graph_in_edges_format/soc-sinaweibo.edges
-triangle_count=212977684
+input_files=graphs/graph_in_edges_format/soc-orkut.edges
+triangle_count=524643952
 seed_count=1
 #sparsification_prob=0.01
-sparsification_prob=0.002,0.004,0.006,0.008,0.01
+sparsification_prob=0.00004
 subsample_prob=0.05
-no_of_repeats=100
-algo_names=EstTriByRW
-print_to_console=false
+no_of_repeats=10
+algo_names=EstTriByEdgeSampleAndCount,EstTriByRWAndCountPerEdge
+print_to_console=true
 print_to_file=true
 degree_bin_seed=false
