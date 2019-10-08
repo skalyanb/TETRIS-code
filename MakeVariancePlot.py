@@ -100,7 +100,7 @@ def plot_estimates (data_dir, out_filename, x_max, title_info):
     ax.set_ylabel('Triangle Count')
 
     #show plot
-    #plt.show()
+    plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
 
     fig.savefig("output/plots/variance/fixed_seed/"+out_filename+"-"+timestr+".eps",format='eps')
@@ -119,26 +119,26 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 16M edges, 1.7M vertices")
 
-    f_name = "socfb-A-anon"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 24M edges, 3M vertices")
-
-    f_name = "soc-orkut"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 106M edges, 3M vertices")
-
+    # f_name = "socfb-A-anon"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 24M edges, 3M vertices")
+    #
+    # f_name = "soc-orkut"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 106M edges, 3M vertices")
+    #
     f_name = "soc-sinaweibo"
     file_name.append(f_name)
     title_info.append(f_name + ": 260M edges, 58M vertices")
 
-    f_name = "soc-twitter-konect"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 1.2B edges, 41M vertices")
-
-    f_name = "soc-friendster"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 1.8B edges, 65M vertices")
-
+    # f_name = "soc-twitter-konect"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 1.2B edges, 41M vertices")
+    #
+    # f_name = "soc-friendster"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 1.8B edges, 65M vertices")
+    #
     for i,file in enumerate(file_name):
         data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/fixed_seed/"
         out_filename = file

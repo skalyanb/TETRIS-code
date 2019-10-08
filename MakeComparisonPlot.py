@@ -35,71 +35,100 @@ def parse_outfile (data_file):
     df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
     edges_seen = df_edges_seen.iloc[0,0]
 
-    return median_error,edges_seen
+    df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[1])
+    vertices_seen = df_edges_seen.iloc[0,0]
+
+    return median_error,edges_seen, vertices_seen
 
 def populate_data (data_dir):
     X = []
     Y=[]
+    Z=[]
     for i, file in enumerate(os.listdir(data_dir)):
         data_file = data_dir + file
         if valid_file(data_dir,file):
-            median_error, edges_seen = parse_outfile(data_file)
+            median_error, edges_seen, vertices_seen = parse_outfile(data_file)
             Y.append(median_error)
             X.append(edges_seen)
+            Z.append(vertices_seen)
 
-    return X,Y
+    return X,Y,Z
 
+def make_plot_edge (X,Y,filename, title_info, save):
+
+    #scatter plot
+    fig, ax_edge = plt.subplots()
+
+    ax_edge.plot(X[1], Y[1], c='red', marker='o', label='UES-&-Count')
+    ax_edge.plot(X[2], Y[2], c='red', marker='^', label='RW-&-Count')
+    ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UES-sparsify')
+    ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='Our Algo')
+    #ax_edge.set_xlim(0.15,1.1)
+    #ax.set_ylim(0,30)
+    ax_edge.legend(loc='upper right')
+    #add x and y labels
+    ax_edge.set_xlabel('Percentage of Edges Visited')
+    ax_edge.set_ylabel('Median Error % (100 runs)')
+
+    #add title
+    fig.suptitle('Comparison against Baselines\n'+title_info)
+
+    #show plot
+    plt.show()
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    if (save):
+        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
+
+
+def make_plot_vertex(Z,Y,filename, title_info, save):
+
+    #scatter plot
+    fig, ax_vertex = plt.subplots()
+
+    ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='UES-&-Count')
+    ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='RW-&-Count')
+    ax_vertex.plot(Z[3], Y[3], c='green', marker='D', label='UES-sparsify')
+    ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='Our Algo')
+    #ax_vertex.set_xlim(1,4)
+    #ax_vertex.set_ylim(0,60)
+    ax_vertex.legend(loc='upper right')
+    #add x and y labels
+    ax_vertex.set_xlabel('Percentage of Vertices Visited')
+    ax_vertex.set_ylabel('Median Error % (100 runs)')
+
+    #add title
+    fig.suptitle('Comparison against Baselines\n'+title_info)
+
+    #show plot
+    plt.show()
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    if (save):
+        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
 
 
 def plot_comparison(data_dir, filename, title_info):
 
     X = []
     Y= []
+    Z = []
 
     for i,dir in enumerate(data_dir):
-        tempX, tempY = populate_data(data_dir)
+        tempX, tempY, tempZ = populate_data(dir)
         X.append(tempX)
         Y.append(tempY)
-    # X_1, Y_1 = populate_data(data_dir_1)
-    #
-    # X_2, Y_2 = populate_data(data_dir_2)
-    #
-    # X_3, Y_3 = populate_data(data_dir_3)
-    #
-    # X_4, Y_4 = populate_data(data_dir_4)
-
-    #scatter plot
-    fig, ax = plt.subplots()
-    ax.plot(X[0], Y[0], c='blue', marker='s', label='Our Algo')
-
-    ax.plot(X[1], Y[1], c='red', marker='o', label='UES-&-Count')
-
-    ax.plot(X[2], Y[2], c='red', marker='^', label='RW-&-Count')
-
-    ax.plot(X[3], Y[3], c='green', marker='D', label='UES-sparsify')
-
-    ax.set_xlim(2,20)
-    ax.legend(loc='upper right')
-
-    # plt.ylim(y_min, y_max)
-
-    #add title
-    ax.set_title('Comparison against Baselines\n'+title_info)
-
-    #add x and y labels
-    ax.set_xlabel('Percentage of Edges Visited')
-    ax.set_ylabel('Median Error % (100 runs)')
-
-    #show plot
-    plt.show()
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    #fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
+        Z.append(tempZ)
+    save = False
+    make_plot_edge (X,Y,filename, title_info, save)
+    #make_plot_vertex(Z,Y,filename, title_info, save)
 
 if __name__ == "__main__":
 
 
     file_name = []
     title_info = []
+
+    tag ="/"
+    #tag = "/vertex/"
 
     # f_name = "soc-flickr-und"
     # file_name.append(f_name)
@@ -136,5 +165,5 @@ if __name__ == "__main__":
         data_dir = []
         out_filename = file + "-comparison-"
         for j,algo in enumerate(algo_list):
-            data_dir.appned("output/plot_data/variance_plot_data/"+file+".edges/"+algo+"/fixed_seed/")
+            data_dir.append("output/plot_data/comparison_plot_data/"+file+".edges/"+algo+tag)
         plot_comparison(data_dir, out_filename, title_info[i])

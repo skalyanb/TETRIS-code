@@ -457,7 +457,7 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
 
     // Sample edges_in_G_p many edges independently and u.a.r from G
     VertexIdx src = 0, dst = 0;
-    EdgeIdx nEdges = 0;
+    EdgeIdx count_match = 0;
     std::vector<VertexIdx > srcs;
     std::vector<VertexIdx > dsts;
     double running_count = 0;
@@ -501,13 +501,17 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
         for (EdgeIdx idx = cg->offsets[src]; idx <cg->offsets[src+1];idx++ ) {
             visited_vertex_set.insert(cg->nbors[idx]);
             visited_edge_set.insert(idx);
-            EdgeIdx e2 = cg->getEdgeBinary(cg->nbors[idx],dst);
-            if (e2!= -1)
+            EdgeIdx e1 = cg->getEdgeBinary(cg->nbors[idx],dst);
+            EdgeIdx e2 = cg->getEdgeBinary(dst,cg->nbors[idx]);
+            visited_edge_set.insert(e1);
+            visited_edge_set.insert(e2);
+            if (e2!= -1) {
+                count_match++;
                 visited_edge_set.insert(e2);
+            }
         }
     }
-
-
+//    printf("nEdges = %lld\n",count_match);
     double scale = 1.0*m / (6.0*edges_in_G_p);
     double triangleEstimate = running_count * scale;
 //    printf ("Multi: %lld,  %lf\n",edges_in_G_p,triangleEstimate);
@@ -558,7 +562,8 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
     // Perform a random walk for seed_count many times
     for (VertexIdx sC = 0; sC < seed_count; sC++) {
         // Pick a random seed vertex
-        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        //VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+        VertexIdx seed = params.seed_vertices[sC]; // TODO: verify randomness
         VertexIdx parent, child;
         parent = seed;
         // Perform a random walk of length walk_length from the seed vertex
@@ -574,7 +579,6 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
                 deg_of_parent = cg->offsets[parent + 1] - cg->offsets[parent];
                 attempt++;
             }
-
             // Take a step of the random walk
             std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
             EdgeIdx random_nbor_edge =
@@ -608,9 +612,12 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
                 for (EdgeIdx idx = cg->offsets[src]; idx <cg->offsets[src+1];idx++ ) {
                     visited_vertex_set.insert(cg->nbors[idx]);
                     visited_edge_set.insert(idx);
+                    EdgeIdx e1 = cg->getEdgeBinary(dst,cg->nbors[idx]);
                     EdgeIdx e2 = cg->getEdgeBinary(cg->nbors[idx],dst);
-                    if (e2!= -1)
+                    if (e2!= -1) {
                         visited_edge_set.insert(e2);
+                        //visited_edge_set.insert(e1);
+                    }
                 }
 
             }
