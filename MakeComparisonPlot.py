@@ -64,7 +64,7 @@ def make_plot_edge (X,Y,filename, title_info, save):
     ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UES-sparsify')
     ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='Our Algo')
     #ax_edge.set_xlim(0.15,1.1)
-    #ax.set_ylim(0,30)
+    ax_edge.set_ylim(0,20)
     ax_edge.legend(loc='upper right')
     #add x and y labels
     ax_edge.set_xlabel('Percentage of Edges Visited')
@@ -87,10 +87,10 @@ def make_plot_vertex(Z,Y,filename, title_info, save):
 
     ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='UES-&-Count')
     ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='RW-&-Count')
-    ax_vertex.plot(Z[3], Y[3], c='green', marker='D', label='UES-sparsify')
+    ax_vertex.plot(Z[3], Y[3], c='red', marker='D', label='UES-sparsify')
     ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='Our Algo')
-    #ax_vertex.set_xlim(1,4)
-    #ax_vertex.set_ylim(0,60)
+    ax_vertex.set_xlim(1,8)
+    ax_vertex.set_ylim(0,15)
     ax_vertex.legend(loc='upper right')
     #add x and y labels
     ax_vertex.set_xlabel('Percentage of Vertices Visited')
@@ -138,13 +138,13 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 24M edges, 3M vertices")
 
-    f_name = "soc-orkut"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 106M edges, 3M vertices")
-
-    # f_name = "soc-sinaweibo"
+    # f_name = "soc-orkut"
     # file_name.append(f_name)
-    # title_info.append(f_name + ": 260M edges, 58M vertices")
+    # title_info.append(f_name + ": 106M edges, 3M vertices")
+
+    f_name = "soc-sinaweibo"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 260M edges, 58M vertices")
     #
     # f_name = "soc-twitter-konect"
     # file_name.append(f_name)

@@ -11,6 +11,17 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+#include <random>
+#include <cmath>
+#include <cstdlib>
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <unordered_set>
+#include <utility>
+#include <string>
+#include <ctime>
+#include <iterator>
 
 
 #include "include/GraphIO.h"
@@ -91,7 +102,7 @@ int main(int argc, char *argv[]) {
     printf("Converted to CSR\n");
 
     Count sum_degree =0;
-    for (VertexIdx src; src < cg.nVertices; src++) {
+    for (VertexIdx src=0; src < cg.nVertices; src++) {
         VertexIdx src_deg = cg.degree(src);
         for (EdgeIdx start = cg.offsets[src]; start < cg.offsets[src+1]; start++) {
             VertexIdx dst = cg.nbors[start];

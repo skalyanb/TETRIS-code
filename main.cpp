@@ -12,6 +12,7 @@
 #include "include/EstimatorUtil.h"
 #include "include/BaselineEstimators.h"
 #include "include/ConfigReader.h"
+#include "include/EstimateEdgeCount.h"
 
 using namespace Escape;
 
@@ -108,6 +109,8 @@ int main(int argc, char *argv[]) {
                             // Uniformly Sample edges, and count the number of triangles in the multi-graph.
                         else if (algo_name == "EstTriByUniformSampling")
                             TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
+                        else if (algo_name == "EdgeEstimator")
+                            EdgeEstimator(&cg, params);
                         else
                             std::cout << "Unknown algorithm option. \n";
                     }

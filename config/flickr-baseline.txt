@@ -26,15 +26,15 @@
 # Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
 # Neighbor sample: EstTriByRWandNborSampling
+#
 #######
-input_files=graphs/graph_in_edges_format/soc-orkut.edges
-triangle_count=524643952
+input_files=graphs/graph_in_edges_format/soc-sinaweibo.edges
+triangle_count=212977684
 seed_count=1
-#sparsification_prob=0.01
-sparsification_prob=0.00004
+sparsification_prob=0.000060,0.000090,0,000130,0.000180,0.000240
 subsample_prob=0.05
-no_of_repeats=10
-algo_names=EstTriByEdgeSampleAndCount,EstTriByRWAndCountPerEdge
+no_of_repeats=100
+algo_names=EstTriByRWAndCountPerEdge,EstTriByEdgeSampleAndCount
 print_to_console=true
 print_to_file=true
 degree_bin_seed=false
