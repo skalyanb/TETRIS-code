@@ -78,7 +78,7 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::
 
 
 
-Estimates EstimateEdgeCount (CGraph *cg, Parameters params)
+Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
 {
     OrderedEdgeCollection randomEdgeCollection;
 
@@ -95,47 +95,45 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params)
     // Now count the number of collision in the random edge collection
     //1. By random walk
     randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
-    c = 25;
+    c = skip;
     //2. By uniform edge collection
 //    randomEdgeCollection = GetEdgesByUniSampling(cg, params, mt);
 
-    EdgeIdx num_edge = randomEdgeCollection.edge_list.size();
-    std::vector<EdgeIdx > edge_list;
-    // Copy every c-th element from the vector and count collision in them
-    for (EdgeIdx i =0; i < num_edge; i=i+c ) {
-        EdgeIdx e_i = randomEdgeCollection.edge_list[i].index;
-        edge_list.emplace_back(e_i);
+    EdgeIdx total_edge = randomEdgeCollection.edge_list.size();
+    EdgeIdx num_edge = 0;
+    int starting_pos = 0;
+    double global_estimate=0;
+    for (starting_pos = 0; starting_pos < c; starting_pos++) {
+        EdgeIdx local_collsion_count = 1;
+        std::vector<EdgeIdx > edge_list;
+        // Copy every c-th element from the vector and count collision in them
+        for (EdgeIdx i =starting_pos; i < total_edge; i=i+c ) {
+            EdgeIdx e_i = randomEdgeCollection.edge_list[i].index;
+            edge_list.emplace_back(e_i);
+        }
+        num_edge = edge_list.size();
+        // Find the collisons now
+        //std::sort(edge_list.begin(),edge_list.end());
+        std::map<EdgeIdx , VertexIdx > freq_map;
+        for (auto const & x : edge_list)
+            ++freq_map[x];
+        for (auto const & p : freq_map) {
+            // How many collisions? If frequency of an edge is k, then k(k-1)/2 many collisions
+            local_collsion_count += p.second * (p.second-1) /2;
+        }
+        numerator = num_edge * (num_edge-1) /2.0;
+        if (local_collsion_count ==0)
+            printf("No!");
+        double edge_estimate = 1.0 * numerator / local_collsion_count;
+        global_estimate += edge_estimate;
     }
-    num_edge = edge_list.size();
+    global_estimate = 1.0 * global_estimate/c;
 
-    // Find the collisons now
-    //std::sort(edge_list.begin(),edge_list.end());
-    std::map<EdgeIdx , VertexIdx > freq_map;
-    for (auto const & x : edge_list)
-        ++freq_map[x];
-    for (auto const & p : freq_map) {
-        // How many collisions? If frequency of an edge is k, then k(k-1)/2 many collisions
-        collsion_count += p.second * (p.second-1) /2;
-    }
-
-
-
-//    for (EdgeIdx i =0; i < num_edge; i++ ) {
-//        EdgeIdx e_i = randomEdgeCollection.edge_list[i].index;
-//        for (EdgeIdx j = i+1; j< num_edge; j++) {
-//            EdgeIdx e_j = randomEdgeCollection.edge_list[j].index;
-//            numerator++;
-//            if ( e_i == e_j)
-//                collsion_count++;
-//        }
-//    }
-    numerator = num_edge * (num_edge-1) /2.0;
-    double edge_estimate = 1.0 * numerator / collsion_count;
     printf("True edge count = %lld, initial sample size = %lld\n",cg->nEdges,randomEdgeCollection.edge_list.size());
     printf("Num edges=%lld, numerator=%lf, numerator2=%lf, collision=%lld,edge_estimate=%lf.\n",
-            num_edge, numerator,numerator, collsion_count,edge_estimate);
+            num_edge, numerator,numerator, collsion_count,global_estimate);
     Estimates output;
-    output.triangle_estimate = edge_estimate; // This is so bad! the triangle count name is actually stroing the edge count.
+    output.triangle_estimate = global_estimate; // This is so bad! the triangle count name is actually stroing the edge count.
                                                 // We definitely need to fix this
     output.fraction_of_vertices_seen = randomEdgeCollection.visited_vertex_set.size() * 100.0 / cg->nVertices;
     output.fraction_of_edges_seen = randomEdgeCollection.visited_edge_set.size() * 100.0 / cg->nEdges;
@@ -143,11 +141,11 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params)
     return output;
 }
 
-void EdgeEstimator (CGraph *cg, Parameters params) {
+void EdgeEstimatorUtil (CGraph *cg, Parameters params, int c) {
     std::vector<Estimates> estimates;
 
     for (Count i = 0; i < params.no_of_repeat; i++) {
-        Estimates est = EstimateEdgeCount(cg, params);
+        Estimates est = EstimateEdgeCount(cg, params, c);
         estimates.push_back(est);
         std::cout << i << "\n";
     }
@@ -203,6 +201,13 @@ void EdgeEstimator (CGraph *cg, Parameters params) {
         fclose(f);
     }
 
+}
+
+void EdgeEstimator (CGraph *cg, Parameters params) {
+    std::vector<int> c = {20,25,30,35,40};
+    for (auto item : c) {
+        EdgeEstimatorUtil(cg, params, item);
+    }
 }
 
 #endif //SUBGRAPHCOUNT_ESTIMATEEDGECOUNT_H
