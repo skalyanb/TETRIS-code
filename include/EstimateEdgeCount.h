@@ -7,14 +7,10 @@
 
 #include <cmath>
 #include <map>
-#include "TriangleEstimators.h"
-#include "EstimatorUtil.h"
+//#include "TriangleEstimators.h"
+//#include "EstimatorUtil.h"
+#include "EstimatorUtilStruct.h"
 
-struct EdgeEstimates {
-    double edge_estimate = 0.0;
-    double fraction_of_vertices_seen = 1.0;
-    double fraction_of_edges_seen = 1.0; // This fraction is with respect to twice the number of edges
-};
 
 OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::mt19937 mt) {
     // Get the number of vertices, number of edges, Initialize scaling to number of edges.
@@ -77,16 +73,15 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::
 }
 
 
-
-Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
+Estimates EstimateEdgeCount (CGraph *cg, OrderedEdgeCollection randomEdgeCollection, Parameters params, int skip)
 {
-    OrderedEdgeCollection randomEdgeCollection;
+//    OrderedEdgeCollection randomEdgeCollection;
 
     // Set up random number generator
-    std::random_device rd;
-    // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distribution
-    std::mt19937 mt(rd());
+//    std::random_device rd;
+//    // Using this random number generator initializize a PRNG: this PRNG is passed along to
+//    // draw an element from various distribution
+//    std::mt19937 mt(rd());
 
     EdgeIdx collsion_count =0;
     double numerator = 0;
@@ -94,7 +89,7 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
 
     // Now count the number of collision in the random edge collection
     //1. By random walk
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
+//    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
     c = skip;
     //2. By uniform edge collection
 //    randomEdgeCollection = GetEdgesByUniSampling(cg, params, mt);
@@ -120,6 +115,7 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
         for (auto const & p : freq_map) {
             // How many collisions? If frequency of an edge is k, then k(k-1)/2 many collisions
             local_collsion_count += p.second * (p.second-1) /2;
+            collsion_count += local_collsion_count;
         }
         numerator = num_edge * (num_edge-1) /2.0;
         if (local_collsion_count ==0)
@@ -128,6 +124,7 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
         global_estimate += edge_estimate;
     }
     global_estimate = 1.0 * global_estimate/c;
+    collsion_count /=c;
 
     printf("True edge count = %lld, initial sample size = %lld\n",cg->nEdges,randomEdgeCollection.edge_list.size());
     printf("Num edges=%lld, numerator=%lf, numerator2=%lf, collision=%lld,edge_estimate=%lf.\n",
@@ -141,73 +138,5 @@ Estimates EstimateEdgeCount (CGraph *cg, Parameters params, int skip)
     return output;
 }
 
-void EdgeEstimatorUtil (CGraph *cg, Parameters params, int c) {
-    std::vector<Estimates> estimates;
-
-    for (Count i = 0; i < params.no_of_repeat; i++) {
-        Estimates est = EstimateEdgeCount(cg, params, c);
-        estimates.push_back(est);
-        std::cout << i << "\n";
-    }
-    EstimatorStats est_stats = GetErrorStatistics(estimates, cg->nEdges);
-
-    // Print to console
-    if (params.print_to_console) {
-        WriteHeaderInOutput(stdout, params, cg, cg->nEdges);
-        WriteAlgorithmOutput(stdout, params.algo_name, params, est_stats);
-        WriteRawData(stdout,estimates);
-    }
-
-    // print to file
-    if (params.print_to_file) {
-        // take current timestamp
-        std::string current_time = GetTimestamp();
-        // extract the input filename
-        std::string out_filename = params.filename.substr(params.filename.find_last_of("/\\") + 1);
-
-        // create the directory output/filename/algoname, if it already does not exist
-        std::string directory = "output/" + out_filename + "/" + params.algo_name;
-        DIR* dir = opendir(directory.c_str());  // try to open the directory
-        if (dir) {
-            // Directory exists, go on to create a file in this location
-            closedir(dir);
-        }
-        else if (ENOENT == errno){
-            // Directory does not exist, try creating one
-            std::string mkdir = "mkdir -p " + directory;
-            if (std::system(mkdir.c_str()) == -1) {
-                printf("Could not create directory output/%s/%s\n", out_filename.c_str(), params.algo_name.c_str());
-                return;
-            }
-
-        }
-        else {
-            printf("Could not create/find directory output/%s/%s\n",out_filename.c_str(),params.algo_name.c_str());
-            return;
-        }
-
-        out_filename = "output/" + out_filename + "/" + params.algo_name + "/" +
-                       std::to_string(params.sparsification_prob) + "-" +
-                       current_time + "-" + out_filename + "-" + params.algo_name + + ".txt";
-        FILE *f = fopen(out_filename.c_str(), "w");
-        if (!f) {
-            printf("Could not write output. Please check for write permissions. Lcaoltion: %s\n",out_filename.c_str());
-            return;
-        }
-        WriteHeaderInOutput(f, params, cg, cg->nEdges);
-        WriteAlgorithmOutput(f, params.algo_name, params, est_stats);
-        WriteRawData(f, estimates);
-
-        fclose(f);
-    }
-
-}
-
-void EdgeEstimator (CGraph *cg, Parameters params) {
-    std::vector<int> c = {20,25,30,35,40};
-    for (auto item : c) {
-        EdgeEstimatorUtil(cg, params, item);
-    }
-}
 
 #endif //SUBGRAPHCOUNT_ESTIMATEEDGECOUNT_H

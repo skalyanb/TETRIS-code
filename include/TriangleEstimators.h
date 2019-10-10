@@ -23,6 +23,9 @@
 #include "Triadic.h"
 #include "Graph.h"
 #include "Digraph.h"
+#include "EstimatorUtilStruct.h"
+#include "EstimateEdgeCount.h"
+
 
 using namespace Escape;
 
@@ -37,58 +40,6 @@ using namespace Escape;
  * sparsification_prob: The sampling probability of the edges in graph sparsification based estimators
  */
 
-struct Parameters {
-    std::string filename;
-    VertexIdx seed_count = 1;
-    std::vector<VertexIdx > seed_vertices;
-    EdgeIdx walk_length;
-    EdgeIdx subsample_size;
-    int no_of_repeat = 1;
-    double sparsification_prob = 0.1;
-    std::string algo_name = "none!";
-    bool print_to_console = false;
-    bool print_to_file = true;
-};
-
-// A structure to store an edge with all the relavant information
-struct OrderedEdge {
-    VertexIdx u;  // the lower degree end point
-    VertexIdx v; // the higher degree end point
-    EdgeIdx index;   // nbors[index] represents (src, dest)
-    VertexIdx degree; // deg(u)
-};
-
-// A collection of OrderedEdge -- Used by random walk based algorithms
-struct OrderedEdgeCollection {
-    EdgeIdx no_of_edges; // No of edges in the collection
-    std::vector<OrderedEdge> edge_list; // The list of edges
-    std::unordered_set<EdgeIdx> visited_edge_set; // The set of unique edges in the collection
-    std::unordered_set<VertexIdx> visited_vertex_set; // The set of unique vertices in the collection
-};
-
-// A structure to hold the estimated triangle count and the fraction of the graph seen in the process by an estimator.
-struct Estimates {
-    double triangle_estimate = 0.0;
-    double fraction_of_vertices_seen = 1.0;
-    double fraction_of_edges_seen = 1.0; // This fraction is with respect to twice the number of edges
-};
-
-bool ComparatorByEdgesSeen(Estimates a, Estimates b) {
-    return (a.fraction_of_edges_seen < b.fraction_of_edges_seen);
-}
-
-bool ComparatorByVerticesSeen(Estimates a, Estimates b) {
-    return (a.fraction_of_vertices_seen < b.fraction_of_vertices_seen);
-}
-
-// A structure to store the details of vertices and edges observed during the algorithm
-struct ObservedGraphStats {
-    VertexIdx VerticesSeenInRandomWalk;
-    VertexIdx VerticesSeenAsNbors;
-    EdgeIdx EdgesSeenInRandomWalk;
-    EdgeIdx EdgesSeenAsNbors;
-};
-
 
 /**
  * Exactly counting the number of triangles in a graph.
@@ -96,6 +47,7 @@ struct ObservedGraphStats {
  * @param cg
  * @return
  */
+
 Estimates CountExactTriangles (CGraph *cg)
 {
 //    printf ("Exactly counting the number of triangles...\n");
@@ -330,9 +282,9 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
 
 //EsTRaW
 Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
-    Estimates output;
+    Estimates output, edge_count_output;
     OrderedEdgeCollection randomEdgeCollection;
-
+    int skip = 25;
     // Set up random number generator
     std::random_device rd;
     // Using this random number generator initializize a PRNG: this PRNG is passed along to
@@ -341,6 +293,9 @@ Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
 
     randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
     output = SampleByEdgeDegree(cg, randomEdgeCollection, params, mt);
+    edge_count_output = EstimateEdgeCount (cg,randomEdgeCollection, params, skip);
+    output.triangle_estimate = 1.0 * output.triangle_estimate  / cg->nEdges;
+    output.triangle_estimate = output.triangle_estimate * edge_count_output.triangle_estimate * 1.0;
     return output;
 }
 

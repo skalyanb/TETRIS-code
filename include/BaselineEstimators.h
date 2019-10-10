@@ -8,7 +8,9 @@
 #include <set>
 #include <unordered_map>
 
+#include "EstimatorUtilStruct.h"
 #include "TriangleEstimators.h"
+
 
 bool IsTrue (bool b) {return b;}
 

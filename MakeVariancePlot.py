@@ -3,18 +3,49 @@ import sys
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
+import statistics
+
 
 dirname = os.path.dirname
 sys.path.append(dirname(dirname(os.path.realpath(__file__))))
+
+def skip_rows_err (index):
+    if index <10 or index > 10:
+        return True
+    return False
+
+
+def skip_rows_seen (index):
+    if index <13 or index > 13:
+        return True
+    return False
 
 def skip_rows (index):
     if index <4 or index > 5:
         return True
     return False
 
-def plot_estimates (data_dir, out_filename, x_max, title_info):
-    X=[]
-    Y=[]
+def read_edge_estimator (data_dir):
+    edge_est = []
+    edge_frac = 0.0
+    for i, file in enumerate(os.listdir(data_dir)):
+        path = os.path.join(data_dir, file)
+        if os.path.isdir(path):
+            # skip directories
+            continue
+        if not file.startswith('.'):
+            data_file = data_dir + file
+            df_tri = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x))
+            edge_frac = df_tri["triangles"][0]
+            df_rawdata = pd.read_csv(data_file, sep=",",skiprows=15)
+            edge_est.extend(df_rawdata["triangle_estimate"])
+            df_edges_seen = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows_seen(x),header=None, usecols=[0])
+            edge_frac = df_edges_seen.iloc[0,0]
+    return statistics.median(edge_est),edge_frac
+
+def plot_estimates (data_dir, out_filename, x_max, title_info,med_err, offset, true_edge):
+    edges_seen=[]
+    tri_est=[]
     max_err_percent = 20
     min_err_percent = 20
 
@@ -33,8 +64,17 @@ def plot_estimates (data_dir, out_filename, x_max, title_info):
             df_tri = pd.read_csv(data_file, sep=",",skiprows=lambda x: skip_rows(x))
             triangle_count = df_tri["triangles"][0]
             df_rawdata = pd.read_csv(data_file, sep=",",skiprows=15)
-            Y.extend(df_rawdata["triangle_estimate"])
-            X.extend(df_rawdata["fraction_of_edges_seen"])
+            tri_est.extend(df_rawdata["triangle_estimate"])
+            edges_seen.extend(df_rawdata["fraction_of_edges_seen"])
+
+    # Fix for the error in the estimate
+    med_edge, offset_edges  = read_edge_estimator(data_dir)
+
+    # Add the percentage of edges seen
+    new_edges_seen = [x+offset_edges for x in edges_seen]
+    #
+
+
 
     fig, ax = plt.subplots()
 
@@ -45,7 +85,7 @@ def plot_estimates (data_dir, out_filename, x_max, title_info):
     ax.axhline(y=y_band_max, color='r', linestyle='--')
 
     #scatter plot
-    ax.scatter(X, Y, s=20, c='blue', marker='o')
+    ax.scatter(new_edges_seen, tri_est, s=20, c='blue', marker='o')
 
     #change axes ranges
     y_min = triangle_count * (1-min_err_percent/100.0)
@@ -114,9 +154,12 @@ if __name__ == "__main__":
 
     file_name = []
     title_info = []
-
+    med_err = [] # Median error in edge count
+    offset =[] # Percentage edges seen
+    true_edge = [] # True edge count
     # f_name = "soc-flickr-und"
     # file_name.append(f_name)
+
     # title_info.append(f_name + ": 16M edges, 1.7M vertices")
 
     # f_name = "socfb-A-anon"
@@ -130,6 +173,9 @@ if __name__ == "__main__":
     f_name = "soc-sinaweibo"
     file_name.append(f_name)
     title_info.append(f_name + ": 260M edges, 58M vertices")
+    med_err.append(0.823)
+    offset.append(1.98)
+    true_edge.append(522642066)
 
     # f_name = "soc-twitter-konect"
     # file_name.append(f_name)
@@ -143,7 +189,7 @@ if __name__ == "__main__":
         data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/fixed_seed/"
         out_filename = file
 
-        plot_estimates(data_dir,out_filename,x_max,title_info[i])
+        plot_estimates(data_dir,out_filename,x_max,title_info[i], med_err[i],offset[i],true_edge[i])
 
     #plot_comparison(data_dir_1,data_dir_2)
 

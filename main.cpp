@@ -89,8 +89,10 @@ int main(int argc, char *argv[]) {
                             params.seed_vertices.emplace_back(seed);
                         }
                         // Our Algorithm
-                        if (algo_name == "EstTriByRWandWghtedSampling")
+                        if (algo_name == "EstTriByRWandWghtedSampling"){
+                            params.algo_name = "_new_" + algo_name;
                             TriangleEstimator(&cg, params, triangle_count, EstTriByRWandWghtedSampling);
+                        }
                             // Baseline: sample an edge and count the number of triangles incident on it. Then scale.
                         else if (algo_name == "EstTriByEdgeSampleAndCount")
                             TriangleEstimator(&cg, params, triangle_count, EstTriByEdgeSampleAndCount);
