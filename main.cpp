@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
                         if (algo_name == "EstTriByRWandWghtedSampling"){
                             for (int nb = 0; nb < num_of_bucket; nb++) {
                                 if (!random_seeds[nb].empty()) {
-                                    for (int j = 0; j < 5; j++) {
+                                    for (int j = 0; j < 4; j++) {
                                         VertexIdx seed = random_seeds[nb][j];
                                         params.seed_vertices[0]= seed;
                                         params.algo_name = "EstTriByRWandWghtedSampling_" + std::to_string(nb);

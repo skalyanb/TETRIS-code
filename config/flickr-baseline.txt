@@ -28,13 +28,13 @@
 # Neighbor sample: EstTriByRWandNborSampling
 #
 #######
-input_files=graphs/graph_in_edges_format/socfb-A-anon.edges,graphs/graph_in_edges_format/soc-orkut.edges,graphs/graph_in_edges_format/soc-sinaweibo.edges
-triangle_count=55606428,524643952,212977684
+input_files=graphs/graph_in_edges_format/soc-orkut.edges
+triangle_count=524643952
 seed_count=1
-sparsification_prob=0.02,0.025,0.0275,0.03
+sparsification_prob=0.03
 subsample_prob=0.05
 no_of_repeats=100,
 algo_names=EstTriByRWandWghtedSampling
 print_to_console=true
 print_to_file=true
-degree_bin_seed=false
+degree_bin_seed=true

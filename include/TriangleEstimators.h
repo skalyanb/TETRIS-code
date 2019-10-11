@@ -284,6 +284,7 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
 Estimates EstTriByRWandWghtedSampling(CGraph *cg, Parameters params) {
     Estimates output, edge_count_output;
     OrderedEdgeCollection randomEdgeCollection;
+    //int skip = 25;
     int skip = 25;
     // Set up random number generator
     std::random_device rd;
