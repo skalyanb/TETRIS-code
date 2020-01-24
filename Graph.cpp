@@ -87,11 +87,15 @@ void CGraph::print(FILE *f) const {
 }
 
 void CGraph::writeBinaryFile(const char *path) {
-    auto out_file = std::fstream(path, std::ios::out | std::ios::binary);
-    out_file.write((char *)&(nVertices), sizeof(nVertices));
-    out_file.write((char *)&(nEdges), sizeof(nEdges));
-    out_file.write((char *)&(offsets), sizeof(offsets));
-    out_file.write((char *)&(nbors), sizeof(nbors));
+    auto out_file = std::ofstream(path, std::ios::out | std::ios::binary);
+    if ( !out_file.is_open() ) {
+        printf("Could not write to the file %s",path);
+        return;
+    }
+    out_file.write(reinterpret_cast<const char*>(&nVertices), sizeof(nVertices));
+    out_file.write(reinterpret_cast<const char*>(&nEdges), sizeof(nEdges));
+    out_file.write(reinterpret_cast<const char*>(offsets), std::streamsize((nVertices+1)* sizeof(VertexIdx)));
+    out_file.write(reinterpret_cast<const char*>(nbors), nEdges*sizeof(EdgeIdx));
     out_file.close();
     if(!out_file.good()) {
         std::cout << "Error occurred at writing time!" << std::endl;

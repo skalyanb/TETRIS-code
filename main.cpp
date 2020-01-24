@@ -46,6 +46,9 @@ int main(int argc, char *argv[]) {
 
     for (int i = 0; i < cfp.input_files.size(); i++) {
 
+
+        auto startTime = std::chrono::high_resolution_clock::now();
+
         //Uplaod the graph from input path
         if (loadGraph(cfp.input_files[i].c_str(), g, 1, IOFormat::escape))
             exit(1);
@@ -57,19 +60,27 @@ int main(int argc, char *argv[]) {
         cg_dummy.sortById();
         printf("Converted to CSR\n");
 
-        Estimates dummy = CountExactTriangles(&cg_dummy);
-        printf("Before count = %lf\n\n",dummy.triangle_estimate);
+        auto endTime = std::chrono::high_resolution_clock::now();
+        std::cout <<
+        std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()
+        << std::endl;
 
         printf("Writing to CSR format....start\n");
-        cg_dummy.writeBinaryFile("graphs/CSR/soc-flickr.csr");
+        startTime = std::chrono::high_resolution_clock::now();
+        //cg_dummy.writeBinaryFile("graphs/CSR/soc-sinaweibo.csr");
+        endTime = std::chrono::high_resolution_clock::now();
+        std::cout <<
+                  std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()
+                  << std::endl;
         printf("Writing to CSR format....end\n");
 
-        if (loadGraphCSR("graphs/CSR/soc-flickr.csr", cg, 1))
+        startTime = std::chrono::high_resolution_clock::now();
+        if (loadGraphCSR("graphs/CSR/soc-sinaweibo.csr", cg, 1))
             exit(1);
-
-        Estimates final = CountExactTriangles(&cg);
-        printf("After count = %lld\n\n",final.triangle_estimate);
-
+        endTime = std::chrono::high_resolution_clock::now();
+        std::cout <<
+                  std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count()
+                  << std::endl;
 
         exit(1);
 

@@ -12,3 +12,5 @@ add_executable(sanitize.out sanitize.cpp sanitize.h)
 add_executable(ExactCount.out ExactCount.cpp Graph.cpp GraphIO.cpp include/Graph.h include/JointSort.h include/ErrorCode.h include/GraphIO.h  include/Digraph.h include/GetAllCounts.h include/Triadic.h include/TriangleEstimators.h include/EstimatorUtil.h include/BaselineEstimators.h)
 
 add_executable(GraphProperties.out GraphProperties.cpp Graph.cpp GraphIO.cpp include/Graph.h include/GraphIO.h)
+
+add_executable(FormatConverter.out GraphFormatConverter.cpp Graph.cpp GraphIO.cpp include/Graph.h include/GraphIO.h)

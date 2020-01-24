@@ -33,7 +33,7 @@ static ErrorCode loadGraph_Escape(const char *path, Graph &graph, int undirected
             continue;
 
         int64_t i1, i2;
-        sscanf(line, "%ld%ld", &i1, &i2);
+        sscanf(line, "%lld%lld", &i1, &i2);
         if (graph.nVertices == 0) {
             graph.nVertices = i1;
             if (undirected)
@@ -56,7 +56,7 @@ static ErrorCode loadGraph_Escape(const char *path, Graph &graph, int undirected
     fclose(f);
 
     if (iEdge < graph.nEdges) {
-        fprintf(stderr, "expected %ld edges, only got %ld\n", graph.nEdges, iEdge);
+        fprintf(stderr, "expected %lld edges, only got %lld\n", graph.nEdges, iEdge);
         return ecIOError;
     }
 
@@ -67,19 +67,22 @@ ErrorCode Escape::loadGraphCSR(const char *path, CGraph &cg, int undirected)
 {
     VertexIdx nVertices;
     EdgeIdx nEdges;
-    auto in_file = std::fstream(path, std::ios::out | std::ios::binary);
+    auto in_file = std::ifstream(path, std::ios::in | std::ios::binary);
     if(!in_file) {
-        std::cout << "Cannot open file!" << std::endl;
+        std::cout << "Cannot open file " << path << std::endl;
+        return ecIOError;
     }
-    in_file.read((char *)&(nVertices), sizeof(nVertices));
-    in_file.read((char *)&(nEdges), sizeof(nEdges));
+    in_file.read(reinterpret_cast<char*> (&nVertices), sizeof(nVertices));
+    in_file.read(reinterpret_cast<char*>(&nEdges), sizeof(nEdges));
+
     cg.nVertices = nVertices;
     cg.nEdges = nEdges;
-    cg.offsets = new EdgeIdx[cg.nVertices + 1];
-    cg.nbors = new VertexIdx[cg.nEdges+1];
 
-    in_file.read((char *)&(cg.offsets), sizeof(cg.offsets));
-    in_file.read((char *)&(cg.nbors), sizeof(cg.nbors));
+    cg.offsets = new EdgeIdx[cg.nVertices+1];
+    cg.nbors = new VertexIdx[cg.nEdges];
+
+    in_file.read(reinterpret_cast<char*>(cg.offsets), (nVertices+1)* sizeof(VertexIdx));
+    in_file.read(reinterpret_cast<char*>(cg.nbors), nEdges*sizeof(EdgeIdx));
     in_file.close();
     if(!in_file.good()) {
         std::cout << "Error occurred at writing time!" << std::endl;

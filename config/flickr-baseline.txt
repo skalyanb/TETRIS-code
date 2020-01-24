@@ -28,8 +28,8 @@
 # Neighbor sample: EstTriByRWandNborSampling
 #
 #######
-input_files=graphs/graph_in_edges_format/soc-flickr.edges
-triangle_count=58771288
+input_files=graphs/graph_in_edges_format/soc-sinaweibo.edges
+triangle_count=212977684
 seed_count=1
 sparsification_prob=0.029
 subsample_prob=0.05
