@@ -16,6 +16,7 @@
 #include "EstimatorUtilStats.h"
 #include "TriangleEstimators.h"
 #include "BaselineEstimators.h"
+#include "baseline/VertexMCMC.h"
 
 
 template <typename TF>

@@ -14,6 +14,8 @@
 #include "include/ConfigReader.h"
 #include "include/EstimateEdgeCount.h"
 
+#include "include/baseline/VertexMCMC.h"
+
 using namespace Escape;
 
 // Usage:
@@ -35,6 +37,7 @@ using namespace Escape;
 int main(int argc, char *argv[]) {
 
     Graph g;
+    CGraph cg;
     if (argc != 2) {
         std::cout << "Usage File: ./SubgraphCount script_file\n\n";
         return 0;
@@ -50,9 +53,25 @@ int main(int argc, char *argv[]) {
         printf("#Vertices = %lld, #Edges = %lld\n", g.nVertices, g.nEdges);
 
         printf("Loaded graph from %s\n", cfp.input_files[i].c_str());
-        CGraph cg = makeCSR(g);
-        cg.sortById();
+        CGraph cg_dummy = makeCSR(g);
+        cg_dummy.sortById();
         printf("Converted to CSR\n");
+
+        Estimates dummy = CountExactTriangles(&cg_dummy);
+        printf("Before count = %lf\n\n",dummy.triangle_estimate);
+
+        printf("Writing to CSR format....start\n");
+        cg_dummy.writeBinaryFile("graphs/CSR/soc-flickr.csr");
+        printf("Writing to CSR format....end\n");
+
+        if (loadGraphCSR("graphs/CSR/soc-flickr.csr", cg, 1))
+            exit(1);
+
+        Estimates final = CountExactTriangles(&cg);
+        printf("After count = %lld\n\n",final.triangle_estimate);
+
+
+        exit(1);
 
         Parameters params;
         params.filename = cfp.input_files[i];
@@ -81,7 +100,7 @@ int main(int argc, char *argv[]) {
                     // sample uniform random seed vertex from the entire graph.
                     // THIS IS THE NORMAL MODE IN WHICH ALL BASELINE AND OUR
                     // ALGORITHMS ARE EXECUTED
-                    if (cfp.degree_bin_seed == false) {
+                    if (! cfp.degree_bin_seed) {
                         VertexIdx n = cg.nVertices;
                         std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
                         for (VertexIdx sC = 0; sC < params.seed_count; sC++) {
@@ -113,6 +132,8 @@ int main(int argc, char *argv[]) {
                             TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
                         else if (algo_name == "EdgeEstimator")
                             EdgeEstimator(&cg, params);
+                        else if (algo_name == "VertexMCMC")
+                            TriangleEstimator(&cg, params, triangle_count, VertexMCMC);
                         else
                             std::cout << "Unknown algorithm option. \n";
                     }

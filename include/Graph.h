@@ -5,6 +5,9 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
+#include <fstream>
+
 
 namespace Escape {
 
@@ -68,6 +71,8 @@ namespace Escape {
 
         //For debugging, not for serialization
         void print(FILE *f = stdout) const;
+
+        void writeBinaryFile(const char *path);
 
         // Checks if edge (v1, v2) is present
         int isEdge(VertexIdx v1, VertexIdx v2);

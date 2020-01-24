@@ -4,6 +4,13 @@ import time
 import pandas as pd
 import matplotlib.pyplot as plt
 
+params = {'legend.fontsize': 'xx-large',
+          'axes.labelsize': 'xx-large',
+          'axes.titlesize':'xx-large',
+          'xtick.labelsize':'xx-large',
+          'ytick.labelsize':'xx-large'}
+
+
 dirname = os.path.dirname
 sys.path.append(dirname(dirname(os.path.realpath(__file__))))
 
@@ -52,22 +59,24 @@ def plot_accuracy(file_name, data_dir, out_filename, title_info=" "):
     fig, ax = plt.subplots()
 
     x_axis = list(range(1,len(file_name)+1))
-    algo_label = ['fb-A','orkut','sinaweibo','twitter','friendster']
-    ax.errorbar(x_axis, Median, yerr=Variance, fmt='o')
-    plt.xticks(x_axis,algo_label)
+    algo_label = ['orkut','sinaweibo','twitter','friendster']
+    ax.errorbar(x_axis, Median, yerr=Variance, fmt='ro',ecolor='b', lw=2, capsize=2, capthick=1)
+    plt.xticks(x_axis,algo_label,fontsize=18)
+    ax.tick_params(axis="y", labelsize=18)
     # ax.legend(loc='upper right')
     #add x and y labels
     ax.set_ylim(0,10)
-    ax.set_ylabel('Median Absolute Error %',fontsize = 16)
-    ax.set_xlabel('Graphs',fontsize = 16)
 
-    #add title
-    fig.suptitle('Accuracy of TETRIS \n(at 3% Edges)',fontsize = 16)
+    ax.set_ylabel('Relative Error Percentage (%)',fontsize=20)
+    ax.set_xlabel('Real world graph datasets',fontsize=20)
+
+    fig.suptitle('Accuracy of TETRIS',fontsize=20)
 
     #show plot
-    plt.show()
+    # plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    fig.savefig("output/plots/accuracy/"+out_filename+timestr+".eps",format='eps')
+    # fig.set_size_inches(6,6)
+    fig.savefig("output/plots/accuracy/"+out_filename+timestr+".eps",format='eps',bbox_inches="tight")
 
 
 if __name__ == "__main__":
@@ -83,8 +92,8 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 16M edges, 1.7M vertices")
 
-    f_name = "socfb-A-anon"
-    file_name.append(f_name)
+    # f_name = "socfb-A-anon"
+    # file_name.append(f_name)
     # title_info.append(f_name + ": 24M edges, 3M vertices")
 
     f_name = "soc-orkut"

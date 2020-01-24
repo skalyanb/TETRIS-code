@@ -67,7 +67,7 @@ def plot_degree_bin (bin_dir, out_filename, title_info):
     #rects4 = ax.bar(x_4, median_err[4], width=barWidth, color='b',  edgecolor= "black",label="Type")
 
     y_min = 0
-    y_max = 10
+    y_max = 5
     ax.set_ylim(y_min,y_max)
 
     # y_ind = [i/2 for i in range(4)]
@@ -75,19 +75,20 @@ def plot_degree_bin (bin_dir, out_filename, title_info):
     # ax.set_yticks(y_ind)
     # ax.set_yticklabels(y_label)
 
-    ax.set_title('Robustness of TETRIS\n'+title_info,fontsize=16)
+    ax.set_title(title_info,fontsize=24)
 
-    ax.set_ylabel('Absolute Median Error (%)',fontsize=16)
+    ax.set_ylabel('Median Relative Error (%)',fontsize=20)
 
     ind = [x[i][1] for i in range(num_bin)]
     ax.set_xticks(ind)
+    ax.tick_params(axis="y", labelsize=18)
     ax.set_xticklabels(('deg$\in [1,10]$', 'deg$\in [10,10^2]$','deg$\in [10^2,10^3]$', 'deg$\in [10^3,10^4]$'),fontsize=11)
-    ax.set_xlabel('Degree based buckets',fontsize=16)
+    ax.set_xlabel('Degree based buckets',fontsize=24)
     plt.show()
 
     timestr = time.strftime("%Y%m%d-%H%M%S")
 
-    fig.savefig("output/plots/degree-bin/"+out_filename+"-"+timestr+".eps",format='eps')
+    fig.savefig("output/plots/degree-bin/"+out_filename+"-"+timestr+".eps",format='eps',bbox_inches="tight")
 
 
 
@@ -104,14 +105,14 @@ if __name__ == "__main__":
 
     # title_info.append(f_name + ": 16M edges, 1.7M vertices")
 
-    f_name = "socfb-A-anon"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 24M edges")
-    no_bin = 4
+    # f_name = "socfb-A-anon"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 24M edges")
+    # no_bin = 4
     # #
     f_name = "soc-orkut"
     file_name.append(f_name)
-    title_info.append(f_name + ": 106M edges")
+    title_info.append(f_name + ": 213M edges")
 
     # f_name = "soc-sinaweibo"
     # file_name.append(f_name)
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     #
     f_name = "soc-twitter-konect"
     file_name.append(f_name)
-    title_info.append(f_name + ": 1.2B edges")
+    title_info.append(f_name + ": 2.4B edges")
     no_bin = 4
 
     # f_name = "soc-friendster"
@@ -129,7 +130,7 @@ if __name__ == "__main__":
     for i,file in enumerate(file_name):
         bin_directory = []
         # The main data dirextory
-        data_dir = "output/plot_data/degree_bin_data/"+file+".edges/EstTriByRWandWghtedSampling/bin"
+        data_dir = "output/plot_data/degree_bin_data/"+file+".edges/EstTriByRWandWghtedSampling/0.3/bin"
         for j in range(no_bin):
             bin_directory.append(data_dir+'_'+str(j)+'/')
         out_filename = file

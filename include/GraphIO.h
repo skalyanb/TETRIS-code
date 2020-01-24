@@ -26,7 +26,7 @@ namespace Escape {
 //graph should be freed with delGraph when you are done with it.
     ErrorCode loadGraph(const char *path, Graph &graph, int undirected, IOFormat fmt);
 
-    ErrorCode loadGraphCSR(const char *path, Graph &graph, int undirected, IOFormat fmt);
+    ErrorCode loadGraphCSR(const char *path, CGraph &cg, int undirected);
 
 }
 #endif

@@ -63,12 +63,34 @@ static ErrorCode loadGraph_Escape(const char *path, Graph &graph, int undirected
     return ecNone;
 }
 
+ErrorCode Escape::loadGraphCSR(const char *path, CGraph &cg, int undirected)
+{
+    VertexIdx nVertices;
+    EdgeIdx nEdges;
+    auto in_file = std::fstream(path, std::ios::out | std::ios::binary);
+    if(!in_file) {
+        std::cout << "Cannot open file!" << std::endl;
+    }
+    in_file.read((char *)&(nVertices), sizeof(nVertices));
+    in_file.read((char *)&(nEdges), sizeof(nEdges));
+    cg.nVertices = nVertices;
+    cg.nEdges = nEdges;
+    cg.offsets = new EdgeIdx[cg.nVertices + 1];
+    cg.nbors = new VertexIdx[cg.nEdges+1];
+
+    in_file.read((char *)&(cg.offsets), sizeof(cg.offsets));
+    in_file.read((char *)&(cg.nbors), sizeof(cg.nbors));
+    in_file.close();
+    if(!in_file.good()) {
+        std::cout << "Error occurred at writing time!" << std::endl;
+    }
+    return ecNone;
+}
 
 ErrorCode Escape::loadGraph(const char *path, Graph &graph, int undirected, IOFormat fmt) {
     switch (fmt) {
         case IOFormat::escape:
             return loadGraph_Escape(path, graph, undirected);
-
         default:
             return ecUnsupportedFormat;
     }

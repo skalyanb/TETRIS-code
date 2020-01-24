@@ -86,6 +86,18 @@ void CGraph::print(FILE *f) const {
     }
 }
 
+void CGraph::writeBinaryFile(const char *path) {
+    auto out_file = std::fstream(path, std::ios::out | std::ios::binary);
+    out_file.write((char *)&(nVertices), sizeof(nVertices));
+    out_file.write((char *)&(nEdges), sizeof(nEdges));
+    out_file.write((char *)&(offsets), sizeof(offsets));
+    out_file.write((char *)&(nbors), sizeof(nbors));
+    out_file.close();
+    if(!out_file.good()) {
+        std::cout << "Error occurred at writing time!" << std::endl;
+    }
+}
+
 
 void Escape::delCGraph(CGraph g) {
     delete[] g.offsets;

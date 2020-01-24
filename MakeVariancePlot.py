@@ -65,7 +65,7 @@ def plot_estimates (data_dir, out_filename, x_max, title_info):
     y_max = triangle_count * (1+max_err_percent/100.0)
     ax.set_ylim(y_min, y_max)
 
-    x_min = 0
+    x_min = 0.1
     x_max = 1.1
     ax.set_xlim(x_min,x_max)
 
@@ -76,47 +76,54 @@ def plot_estimates (data_dir, out_filename, x_max, title_info):
     ax.text(1.02, relative_pos_band_exact, '0%',
             horizontalalignment='left',
             verticalalignment='center',
+            fontsize=20,
             #rotation='vertical',
             transform=ax.transAxes
             )
     ax.text(1.02, relative_pos_band_max, '+'+str(max_band_percent)+'%',
             horizontalalignment='left',
             verticalalignment='center',
+            fontsize=20,
             #rotation='vertical',
             transform=ax.transAxes
             )
     ax.text(1.02, relative_pos_band_min, '-'+str(min_band_percent)+'%',
             horizontalalignment='left',
             verticalalignment='center',
+            fontsize=20,
             #rotation='vertical',
             transform=ax.transAxes
             )
     ax.text(1.02, 1, '+'+str(max_err_percent)+'%',
             horizontalalignment='left',
             verticalalignment='center',
+            fontsize=20,
             #rotation='vertical',
             transform=ax.transAxes
             )
     ax.text(1.02, 0, '-'+str(min_err_percent)+'%',
             horizontalalignment='left',
             verticalalignment='center',
+            fontsize=20,
             #rotation='vertical',
             transform=ax.transAxes
             )
 
 
     #add title
-    ax.set_title('Accuracy vs Observed Graph\n'+title_info,fontsize=16)
+    ax.set_title(title_info,fontsize=20)
 
     #add x and y labels
-    ax.set_xlabel('Percentage of Edges Visited',fontsize=16)
-    ax.set_ylabel('Triangle Count',fontsize=16)
+    ax.set_xlabel('Percentage of Edges Visited (%)',fontsize=22)
+    ax.set_ylabel('Triangle Estimate',fontsize=24)
 
+    ax.tick_params(axis="y", labelsize=20)
+    ax.tick_params(axis="x", labelsize=20)
     #show plot
-    plt.show()
+    # plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
 
-    fig.savefig("output/plots/variance/EdgeEstimationCorrected/"+out_filename+"-"+timestr+".eps",format='eps')
+    fig.savefig("output/plots/variance/EdgeEstimationCorrected/"+out_filename+"-"+timestr+".eps",bbox_inches="tight")
 
 
 
@@ -128,23 +135,22 @@ if __name__ == "__main__":
     file_name = []
     title_info = []
 
-    # f_name = "soc-flickr-und"
+    f_name = "soc-flickr-und"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 32M edges")
+
+    # f_name = "soc-orkut"
     # file_name.append(f_name)
-
-    # title_info.append(f_name + ": 16M edges, 1.7M vertices")
-
-    f_name = "soc-orkut"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 106M edges")
-
-    f_name = "soc-sinaweibo"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 260M edges")
+    # title_info.append(f_name + ": 213M edges")
     #
-    f_name = "soc-twitter-konect"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 1.2B edges")
-
+    # f_name = "soc-sinaweibo"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 523M edges")
+    # #
+    # f_name = "soc-twitter-konect"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 2.4B edges")
+    #
     # f_name = "socfb-A-anon"
     # file_name.append(f_name)
     # title_info.append(f_name + ": 24M edges, 3M vertices")
@@ -155,7 +161,7 @@ if __name__ == "__main__":
     # title_info.append(f_name + ": 1.8B edges, 65M vertices")
     # #
     for i,file in enumerate(file_name):
-        data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/fixed_seed/"
+        data_dir = "output/plot_data/variance_plot_data/"+file+".edges/EstTriByRWandWghtedSampling/EdgeEstimationCorrected/"
         out_filename = file
 
         plot_estimates(data_dir,out_filename,x_max,title_info[i])

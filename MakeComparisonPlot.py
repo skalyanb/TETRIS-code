@@ -59,25 +59,26 @@ def make_plot_edge (X,Y,filename, title_info, save):
     #scatter plot
     fig, ax_edge = plt.subplots()
 
-    ax_edge.plot(X[1], Y[1], c='red', marker='o', label='UES-&-Count')
-    ax_edge.plot(X[2], Y[2], c='red', marker='^', label='RW-&-Count')
-    ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UES-sparsify')
-    ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='Our Algo')
+    ax_edge.plot(X[1], Y[1], c='red', marker='o', label='SEC',markersize=12)
+    ax_edge.plot(X[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
+    ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
+    ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
     #ax_edge.set_xlim(0.15,1.1)
     ax_edge.set_ylim(0,20)
-    ax_edge.legend(loc='upper right')
+    ax_edge.legend(loc='upper right',fontsize=18)
     #add x and y labels
-    ax_edge.set_xlabel('Percentage of Edges Visited')
-    ax_edge.set_ylabel('Median Error % (100 runs)')
+    ax_edge.set_xlabel('Percentage of Edges Visited',fontsize=20)
+    ax_edge.set_ylabel('Median Relative Error %' ,fontsize=20)
 
+    ax_edge.tick_params(axis="y", labelsize=18)
+    ax_edge.tick_params(axis="x", labelsize=18)
     #add title
-    fig.suptitle('Comparison against Baselines\n'+title_info)
-
-    #show plot
+    fig.suptitle(title_info,fontsize=18)
+#show plot
     plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
     if (save):
-        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
+        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps',bbox_inches="tight")
 
 
 def make_plot_vertex(Z,Y,filename, title_info, save):
@@ -85,25 +86,29 @@ def make_plot_vertex(Z,Y,filename, title_info, save):
     #scatter plot
     fig, ax_vertex = plt.subplots()
 
-    ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='UES-&-Count')
-    ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='RW-&-Count')
-    ax_vertex.plot(Z[3], Y[3], c='red', marker='D', label='UES-sparsify')
-    ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='Our Algo')
+    ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='SEC',markersize=12)
+    ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
+    ax_vertex.plot(Z[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
+    ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
     ax_vertex.set_xlim(1,8)
     ax_vertex.set_ylim(0,15)
-    ax_vertex.legend(loc='upper right')
+    ax_vertex.legend(loc='upper right',fontsize=18)
     #add x and y labels
-    ax_vertex.set_xlabel('Percentage of Vertices Visited')
-    ax_vertex.set_ylabel('Median Error % (100 runs)')
+    ax_vertex.set_xlabel('Percentage of Vertices Visited',fontsize=20)
+    ax_vertex.set_ylabel('Median Relative Error %',fontsize=20)
+
+
+    ax_vertex.tick_params(axis="y", labelsize=18)
+    ax_vertex.tick_params(axis="x", labelsize=18)
 
     #add title
-    fig.suptitle('Comparison against Baselines\n'+title_info)
+    fig.suptitle(title_info,fontsize=18)
 
     #show plot
     plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
     if (save):
-        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps')
+        fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps',bbox_inches="tight")
 
 
 def plot_comparison(data_dir, filename, title_info):
@@ -117,9 +122,9 @@ def plot_comparison(data_dir, filename, title_info):
         X.append(tempX)
         Y.append(tempY)
         Z.append(tempZ)
-    save = False
+    save = True
     make_plot_edge (X,Y,filename, title_info, save)
-    #make_plot_vertex(Z,Y,filename, title_info, save)
+    # make_plot_vertex(Z,Y,filename, title_info, save)
 
 if __name__ == "__main__":
 
@@ -128,7 +133,7 @@ if __name__ == "__main__":
     title_info = []
 
     tag ="/"
-    #tag = "/vertex/"
+    # tag = "/vertex/"
 
     # f_name = "soc-flickr-und"
     # file_name.append(f_name)
@@ -138,13 +143,14 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 24M edges, 3M vertices")
 
-    # f_name = "soc-orkut"
-    # file_name.append(f_name)
-    # title_info.append(f_name + ": 106M edges, 3M vertices")
-
-    f_name = "soc-sinaweibo"
+    f_name = "soc-orkut"
     file_name.append(f_name)
-    title_info.append(f_name + ": 260M edges, 58M vertices")
+    # title_info.append(f_name + ": 3M vertices")
+    title_info.append(f_name + ": 31M edges")
+
+    # f_name = "soc-sinaweibo"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 260M edges")
     #
     # f_name = "soc-twitter-konect"
     # file_name.append(f_name)

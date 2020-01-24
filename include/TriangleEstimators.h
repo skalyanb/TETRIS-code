@@ -68,7 +68,7 @@ Estimates CountExactTriangles (CGraph *cg)
     delCGraph(dag.inlist);
     delCGraph(dag.outlist);
     delCGraph(cg_relabel);
-    //printf ("  Triangle=%lld ",info.total);
+    printf ("  Triangle=%lld ",info.total);
     return output;
 }
 
