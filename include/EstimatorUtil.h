@@ -8,9 +8,11 @@
 #define SUBGRAPHCOUNT_ESTIMATORUTIL_H
 
 #include <cstdlib>
+#include <chrono>
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
+
 
 #include "EstimatorUtilStruct.h"
 #include "EstimatorUtilStats.h"
