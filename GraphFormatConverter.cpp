@@ -10,7 +10,7 @@
 int main(int argc, char *argv[]) {
 
     if (argc != 3) {
-        std::cout << "Usage: ./GraphFormatConverter.out out_directory input_filepath" << std::endl;
+        std::cout << "Usage: ./GraphFormatConverter.out path/to/out/directory/ input_file" << std::endl;
         return 0;
     }
 
@@ -35,8 +35,10 @@ int main(int argc, char *argv[]) {
     // extract the input filename and construct output file path
     std::string in_filepath(argv[2]);
     std::string out_filename = in_filepath.substr(in_filepath.find_last_of("/\\") + 1);
+    std::cout << out_filename << std::endl;
     std::string out_path(argv[1]);
-    out_path = out_path + "/" + out_filename + ".csr";
+    out_path = out_path + out_filename + ".csr";
+    std::cout << out_path << std::endl;
 
     startTime = std::chrono::high_resolution_clock::now();
     cg.writeBinaryFile(out_path.c_str());

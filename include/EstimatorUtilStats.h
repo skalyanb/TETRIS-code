@@ -22,7 +22,7 @@ EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count t
     // TODO consider using lambda function
     for (int i = 0; i < no_of_repeats; i++)
         algo_error_percentage_list[i] =
-                std::abs(algo_estimates[i].triangle_estimate - true_triangle_count) * 100 / true_triangle_count;
+                std::abs(algo_estimates[i].estimate - true_triangle_count) * 100 / true_triangle_count;
 
     int middle_index = no_of_repeats / 2;
     std::nth_element(algo_error_percentage_list.begin(), algo_error_percentage_list.begin() + middle_index,
@@ -87,7 +87,7 @@ void WriteAlgorithmOutput(FILE *f, std::string algo_name, Parameters params,
 void WriteRawData (FILE *f, std::vector<Estimates> const &estimates) {
     fprintf(f, "triangle_estimate,fraction_of_edges_seen,fraction_of_vertices_seen\n");
     for (auto & est : estimates) {
-        fprintf(f, "%.3lf,%.6lf,%.6lf\n", est.triangle_estimate, est.fraction_of_edges_seen,
+        fprintf(f, "%.3lf,%.6lf,%.6lf\n", est.estimate, est.fraction_of_edges_seen,
                 est.fraction_of_vertices_seen);
     }
 }

@@ -6,11 +6,12 @@
 #define SUBGRAPHCOUNT_VERTEXMCMC_H
 
 
-#include <set>
-#include <unordered_map>
+#include <algorithm>
 
 #include "../EstimatorUtilStruct.h"
 #include "../TriangleEstimators.h"
+#include "../util/RandomWalkUtils.h"
+
 
 /**
  * Algorithm Details:
@@ -25,20 +26,6 @@
  * @return
  */
 
-VertexIdx AlternateSeed (CGraph* cg, std::mt19937 mt)
-{
-    int attempt = 0;
-    VertexIdx deg_of_parent = 0, parent = 0;
-    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, cg->nVertices - 1); // Initialize a uniform distribution for generating seed vertices
-    while (deg_of_parent == 0 && attempt < 1000) {
-        printf("BAd luck! Trying again %d\n", attempt);
-        parent = dist_seed_vertex(mt);
-        deg_of_parent = cg->degree(parent);
-        attempt++;
-    }
-    return parent;
-}
-
 Estimates VertexMCMC(CGraph *cg, Parameters params)
 {
 
@@ -48,8 +35,7 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
     VertexIdx n = cg->nVertices;
     EdgeIdx m = cg->nEdges; // Note that m is double of the number of edges in the graph
     // VertexIdx seed_count = params.seed_count;  // Unused for now. Reserved for future use
-    double p = params.sparsification_prob;
-    EdgeIdx walk_length = floor(m*p)/2;
+    EdgeIdx walk_length = params.walk_length;
     VertexIdx seed = params.seed_vertices[0]; // We are working with only one seed vertex for this project
 
     /**
@@ -63,10 +49,8 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
     /**
      * Data structures for book-keeping and local variables
      */
-    std::unordered_set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
-    std::unordered_set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
-    visited_vertex_set.reserve(walk_length*50);
-    visited_edge_set.reserve(walk_length*50);
+    std::vector <bool > visited_vertex_set(n,false);
+    std::vector <bool > visited_edge_set(m,false);
     EdgeIdx count_tri = 0; // This variable counts the number of times we find a triangle
     VertexIdx parent, child,deg_of_parent, deg_of_child;
 
@@ -88,9 +72,9 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
         /**
          * Update data structures
          */
-        visited_vertex_set.insert(parent);
-        visited_vertex_set.insert(child);
-        visited_edge_set.insert(random_nbor_edge);
+        visited_vertex_set[parent] = true;
+        visited_vertex_set[child] = true;
+        visited_edge_set[random_nbor_edge] = true;
 
         /**
          * Decide if to take the step or stay put at the same vertex
@@ -125,12 +109,12 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
         /**
          * Update data structures
          */
-        visited_vertex_set.insert(u);
-        visited_vertex_set.insert(v);
-        visited_edge_set.insert(random_nbor_edge_u);
-        visited_edge_set.insert(random_nbor_edge_v);
+        visited_vertex_set[u] = true;
+        visited_vertex_set[v] = true;
+        visited_edge_set[random_nbor_edge_u] = true;
+        visited_edge_set[random_nbor_edge_v] = true;
         if (e!= -1)
-            visited_edge_set.insert(e);
+            visited_edge_set[e] =true;
 
     }
 
@@ -142,6 +126,7 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
         VertexIdx deg = cg->degree(src);
         wedge_count += deg * (deg-1) * 0.5;
     }
+
     double transitivity = 1.0*count_tri / walk_length;
     double triangleEstimate = transitivity * wedge_count / 3.0 ;
 
@@ -149,9 +134,11 @@ Estimates VertexMCMC(CGraph *cg, Parameters params)
      * Populate the return structure
      */
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
-    VertexIdx edges_seen = visited_edge_set.size();
-    VertexIdx vertices_seen = visited_vertex_set.size();
+    return_estimate.estimate = triangleEstimate;
+
+    VertexIdx edges_seen = std::count(visited_edge_set.begin(),visited_edge_set.end(),true);
+    VertexIdx vertices_seen = std::count(visited_vertex_set.begin(),visited_vertex_set.end(), true);
+
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
 

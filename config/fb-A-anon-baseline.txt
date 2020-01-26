@@ -30,6 +30,6 @@ seed_count=1
 sparsification_prob=0.125
 subsample_prob=0.05
 no_of_repeats=100
-algo_names=EstTriByRWandWghtedSampling
+algo_names=TETRIS
 print_to_console=false
 print_to_file=true

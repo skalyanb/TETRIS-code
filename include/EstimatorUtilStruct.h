@@ -24,6 +24,7 @@ struct Parameters {
     std::string algo_name = "none!";
     bool print_to_console = false;
     bool print_to_file = true;
+    bool edge_count_available = true;
 };
 
 // A structure to store an edge with all the relavant information
@@ -38,13 +39,13 @@ struct OrderedEdge {
 struct OrderedEdgeCollection {
     EdgeIdx no_of_edges; // No of edges in the collection
     std::vector<OrderedEdge> edge_list; // The list of edges
-    std::unordered_set<EdgeIdx> visited_edge_set; // The set of unique edges in the collection
-    std::unordered_set<VertexIdx> visited_vertex_set; // The set of unique vertices in the collection
+    std::vector<bool > visited_edge_set; // The set of unique edges in the collection
+    std::vector<bool > visited_vertex_set; // The set of unique vertices in the collection
 };
 
 // A structure to hold the estimated triangle count and the fraction of the graph seen in the process by an estimator.
 struct Estimates {
-    double triangle_estimate = 0.0;
+    double estimate = 0.0;
     double fraction_of_vertices_seen = 1.0;
     double fraction_of_edges_seen = 1.0; // This fraction is with respect to twice the number of edges
 };

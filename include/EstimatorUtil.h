@@ -15,8 +15,9 @@
 #include "EstimatorUtilStruct.h"
 #include "EstimatorUtilStats.h"
 #include "TriangleEstimators.h"
-#include "BaselineEstimators.h"
+//#include "BaselineEstimators.h"
 #include "baseline/VertexMCMC.h"
+#include "TETRIS.h"
 
 
 template <typename TF>
@@ -24,9 +25,13 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
     std::vector<Estimates> estimates;
 
     for (Count i = 0; i < params.no_of_repeat; i++) {
+        auto startTime = std::chrono::high_resolution_clock::now();
         Estimates est = func(cg, params);
+        auto endTime = std::chrono::high_resolution_clock::now();
+        std::cout << "Run " << i<<". Time ttaken for this run = " <<
+                  std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count()
+                  << " seconds" << std::endl;
         estimates.push_back(est);
-        std::cout << i << "\n";
     }
     EstimatorStats est_stats = GetErrorStatistics(estimates, true_triangle_count);
 

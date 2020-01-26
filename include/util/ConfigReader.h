@@ -23,6 +23,7 @@ struct config_params{
     bool print_to_console =true;
     bool print_to_file=false;
     bool degree_bin_seed=false;
+    bool edge_count_available = true;
 };
 
 void ParseToken(config_params& cfp, string key, string val) {
@@ -61,7 +62,6 @@ void ParseToken(config_params& cfp, string key, string val) {
             cfp.seed_count.emplace_back(stoi(token));
     }
 
-
     else if (key == "algo_names") {
         stringstream is_val (val);
         string token;
@@ -86,6 +86,17 @@ void ParseToken(config_params& cfp, string key, string val) {
             std::cout << "Unknow token encountered \n" ;
         }
     }
+
+    else if (key == "edge_count_available") {
+        if (val == "true")
+            cfp.edge_count_available = true;
+        else if (val == "false")
+            cfp.edge_count_available = false;
+        else {
+            std::cout << "Unknow token encountered \n" ;
+        }
+    }
+
     else if (key == "degree_bin_seed") {
         if (val == "true")
             cfp.degree_bin_seed = true;

@@ -75,6 +75,6 @@ int main(int argc, char *argv[]) {
     printf("Converted to CSR\n");
 
     Estimates out = CountExactTriangles(&cg);
-    write_output(argv[1],&cg,out.triangle_estimate);
+    write_output(argv[1],&cg,out.estimate);
     return 0;
 }

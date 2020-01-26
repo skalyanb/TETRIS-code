@@ -10,6 +10,7 @@
 
 #include "EstimatorUtilStruct.h"
 #include "TriangleEstimators.h"
+#include "TETRIS.h"
 
 
 bool IsTrue (bool b) {return b;}
@@ -195,12 +196,12 @@ Estimates EstTriBySparsification(CGraph *cg, Parameters params)
 
     // Count the exact number of triangles in the sparsified graph G_p and scale it up.
     Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
-    double triangleEstimate = (triangles_in_Gp.triangle_estimate * 1.0)/ (p*p*p);
+    double triangleEstimate = (triangles_in_Gp.estimate * 1.0)/ (p*p*p);
 //    std::cout << nEdges <<"  " << triangleEstimate << std::endl;
 //    printf ("%lld,  %lf",nEdges,triangleEstimate);
 
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.estimate = triangleEstimate;
     return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
     return_estimate.fraction_of_edges_seen = CG_p.nEdges * 100.0 / m;
 
@@ -287,7 +288,7 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
     Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
     delCGraph(CG_p);
     double scale = 1.0 / pow(p,3);
-    double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
+    double triangleEstimate = triangles_in_Gp.estimate * scale ;
 //    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
 
     // Count the exact number of triangles in the sparsified simple graph CG_p_s and scale it up.
@@ -297,7 +298,7 @@ Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
 ////    printf ("Simple : %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
 
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.estimate = triangleEstimate;
     return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
     return_estimate.fraction_of_edges_seen = 2 *visited_edge_set.size() * 100.0 / m;
     // Why the multiplication by 2? The fraction of edges seen is effectively
@@ -400,8 +401,8 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
     Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
     delCGraph(CG_p);
     double scale = 1.0 / pow(p,3);
-    double triangleEstimate = triangles_in_Gp.triangle_estimate * scale ;
-    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,548658705.0/triangles_in_Gp.triangle_estimate *1.0);
+    double triangleEstimate = triangles_in_Gp.estimate * scale ;
+    printf("p=%lf,  scale = %lf, desired scale = %lf \n",p,scale,548658705.0/triangles_in_Gp.estimate *1.0);
 //    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
 
     // Count the exact number of triangles in the sparsified graph CG_p_s and scale it up.
@@ -415,7 +416,7 @@ Estimates EstTriByRW(CGraph *cg, Parameters params) {
 
 
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.estimate = triangleEstimate;
     return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
     return_estimate.fraction_of_edges_seen = 2*visited_edge_set.size() * 100.0 / m;
     // Why the multiplication by 2? The fraction of edges seen is effectively
@@ -519,7 +520,7 @@ Estimates EstTriByEdgeSampleAndCount(CGraph *cg, Parameters params)
 //    printf ("Multi: %lld,  %lf\n",edges_in_G_p,triangleEstimate);
 
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.estimate = triangleEstimate;
     VertexIdx edges_seen = visited_edge_set.size();
     VertexIdx vertices_seen = visited_vertex_set.size();
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
@@ -639,7 +640,7 @@ Estimates EstTriByRWAndCountPerEdge(CGraph *cg, Parameters params) {
 //    printf ("Multi: %lld,  %lf\n",visited_edge_set.size(),triangleEstimate);
 
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = triangleEstimate;
+    return_estimate.estimate = triangleEstimate;
     VertexIdx edges_seen = visited_edge_set.size();
     VertexIdx vertices_seen = visited_vertex_set.size();
     //printf("V=%lld,E=%lld",vertices_seen,edges_seen);
@@ -706,7 +707,7 @@ Estimates NborSampling(CGraph *cg, OrderedEdgeCollection &edge_collection, std::
     X = Y * 1.0 / no_of_edges;
     // Create return object and store relevant stats
     Estimates return_estimate = {};
-    return_estimate.triangle_estimate = X;
+    return_estimate.estimate = X;
     return_estimate.fraction_of_vertices_seen = edge_collection.visited_vertex_set.size() * 100.0 / cg->nVertices;
     return_estimate.fraction_of_edges_seen = edge_collection.visited_edge_set.size() * 100.0 / m;
 

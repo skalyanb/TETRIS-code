@@ -18,7 +18,7 @@
 # soc-twitter-konect.edges = 34824916864
 # socfb-A-anon.edges = 55606428
 ##### Algo_names
-# Our algo: EstTriByRWandWghtedSampling
+# Our algo: TETRIS
 # Baseline:
 # Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
 # Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge

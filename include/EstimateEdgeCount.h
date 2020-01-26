@@ -23,11 +23,8 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::
     std::vector<OrderedEdge> edge_list;
 
     // Keep track of the vertices and edges seen so far by the random walk
-    std::unordered_set<EdgeIdx> visited_edge_set;
-    std::unordered_set<VertexIdx> visited_vertex_set;
-
-    std::vector<EdgeIdx> visited_edge_list;
-    std::vector<VertexIdx> visited_vertex_list;
+    std::vector<bool> visited_edge_set (m,false);
+    std::vector<bool> visited_vertex_set (n,false);
 
     VertexIdx src = 0, dst = 0;
     EdgeIdx nEdges = 0;
@@ -50,20 +47,20 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::
             printf("Bug in the code!! Run!!!! \n\n");
 
         edge_list.push_back(OrderedEdge{src, dst, e, 0});
-        visited_edge_list.emplace_back(e);
-        visited_vertex_list.emplace_back(src);
-        visited_vertex_list.emplace_back(dst);
+        visited_edge_set[e] = true;
+        visited_vertex_set[src] = true;
+        visited_vertex_set[dst] = true;
     }
 
     // Create return structure for this function.
     // The number of edges produced by the random walk is walk_length;
-    std::copy(visited_edge_list.begin(),
-              visited_edge_list.end(),
-              std::inserter(visited_edge_set, visited_edge_set.end()));
-
-    std::copy(visited_vertex_list.begin(),
-              visited_vertex_list.end(),
-              std::inserter(visited_vertex_set, visited_vertex_set.end()));
+//    std::copy(visited_edge_list.begin(),
+//              visited_edge_list.end(),
+//              std::inserter(visited_edge_set, visited_edge_set.end()));
+//
+//    std::copy(visited_vertex_list.begin(),
+//              visited_vertex_list.end(),
+//              std::inserter(visited_vertex_set, visited_vertex_set.end()));
 
     OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
 //    printf("Random walk: walk length = %lld ",walk_length);
@@ -130,10 +127,12 @@ Estimates EstimateEdgeCount (CGraph *cg, OrderedEdgeCollection randomEdgeCollect
     printf("Num edges=%lld, numerator=%lf, numerator2=%lf, collision=%lld,edge_estimate=%lf.\n",
             num_edge, numerator,numerator, collsion_count,global_estimate);
     Estimates output;
-    output.triangle_estimate = global_estimate; // This is so bad! the triangle count name is actually stroing the edge count.
+    output.estimate = global_estimate; // This is so bad! the triangle count name is actually stroing the edge count.
                                                 // We definitely need to fix this
-    output.fraction_of_vertices_seen = randomEdgeCollection.visited_vertex_set.size() * 100.0 / cg->nVertices;
-    output.fraction_of_edges_seen = randomEdgeCollection.visited_edge_set.size() * 100.0 / cg->nEdges;
+    VertexIdx vertices_seen = std::count(randomEdgeCollection.visited_vertex_set.begin(),randomEdgeCollection.visited_vertex_set.end(),true);
+    EdgeIdx edges_seen = std::count(randomEdgeCollection.visited_edge_set.begin(),randomEdgeCollection.visited_edge_set.end(),true);
+    output.fraction_of_vertices_seen = vertices_seen * 100.0 / cg->nVertices;
+    output.fraction_of_edges_seen = edges_seen * 100.0 / cg->nEdges;
 
     return output;
 }
