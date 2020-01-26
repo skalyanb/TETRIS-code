@@ -28,13 +28,13 @@
 # Neighbor sample: EstTriByRWandNborSampling
 #
 #######
-input_files=graphs/CSR/soc-sinaweibo.edges.csr
-triangle_count=212977684
+input_files=graphs/CSR/soc-sinaweibo.edges.csr,graphs/CSR/soc-orkut.edges
+triangle_count=212977684,524643952
 seed_count=1
 subsample_prob=0.05
-no_of_repeats=10
-algo_names=SRW1,TETRIS
-sparsification_prob=0.005
+no_of_repeats=100
+algo_names=SRW1,TETRIS,VertexMCMC
+sparsification_prob=0.0002,0.0004,0.0006,0.0008,0.001
 print_to_console=true
 print_to_file=true
 degree_bin_seed=false

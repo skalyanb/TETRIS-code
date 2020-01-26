@@ -59,13 +59,19 @@ EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count t
 
 // TODO use c++ file buffer here
 void WriteHeaderInOutput(FILE *f, Parameters params, CGraph *cg, Count triangle_count) {
-    fprintf(f, "#Filename = %s , Algo name = %s \n", params.filename.c_str(), params.algo_name.c_str());
+    fprintf(f, "#Filename = %s , Algo name = %s, "
+               "edge count available=%s, CSS = %s, NB=%s \n",
+            params.filename.c_str(), params.algo_name.c_str(),
+            params.edge_count_available ? "true":"false",
+            params.CSS ? "true":"false",
+            params.NB ? "true":"false");
     fprintf(f, "########################\n");
     fprintf(f, "#Graph Properties\n");
     fprintf(f, "########################\n");
     fprintf(f, "vertices,edges,triangles\n");
     fprintf(f, "%lld,%lld,%lld\n", cg->nVertices, cg->nEdges, triangle_count);
-    fprintf(f, "no_of_repeat,seed_count,seed_vertex,degree_of_seed_vertex,walk_length,subsample_size,sparsification_prob\n");
+    fprintf(f, "no_of_repeat,seed_count,seed_vertex,degree_of_seed_vertex,"
+               "walk_length,subsample_size,sparsification_prob\n");
     fprintf(f, "%d,%lld,%lld,%lld,%lld,%lld,%lf\n",params.no_of_repeat, params.seed_count, params.seed_vertices[0],
             cg->degree(params.seed_vertices[0]),params.walk_length,
             params.subsample_size, params.sparsification_prob);
