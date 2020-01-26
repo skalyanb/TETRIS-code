@@ -123,9 +123,9 @@ Estimates EstimateEdgeCount (CGraph *cg, OrderedEdgeCollection randomEdgeCollect
     global_estimate = 1.0 * global_estimate/c;
     collsion_count /=c;
 
-    printf("True edge count = %lld, initial sample size = %lld\n",cg->nEdges,randomEdgeCollection.edge_list.size());
-    printf("Num edges=%lld, numerator=%lf, numerator2=%lf, collision=%lld,edge_estimate=%lf.\n",
-            num_edge, numerator,numerator, collsion_count,global_estimate);
+//    printf("True edge count = %lld, initial sample size = %lld\n",cg->nEdges,randomEdgeCollection.edge_list.size());
+//    printf("Num edges=%lld, numerator=%lf, numerator2=%lf, collision=%lld,edge_estimate=%lf.\n",
+//            num_edge, numerator,numerator, collsion_count,global_estimate);
     Estimates output;
     output.estimate = global_estimate; // This is so bad! the triangle count name is actually stroing the edge count.
                                                 // We definitely need to fix this

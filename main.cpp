@@ -15,6 +15,7 @@
 #include "include/EstimateEdgeCount.h"
 
 #include "include/baseline/VertexMCMC.h"
+#include "include/baseline/SubgraohRandomWalk_SRW.h"
 #include "include/TETRIS.h"
 
 using namespace Escape;
@@ -133,6 +134,8 @@ int main(int argc, char *argv[]) {
                             EdgeEstimator(&cg, params);
                         else if (algo_name == "VertexMCMC")
                             TriangleEstimator(&cg, params, triangle_count, VertexMCMC);
+                        else if (algo_name == "SRW1")
+                            TriangleEstimator(&cg, params, triangle_count, SRW1);
                         else
                             std::cout << "Unknown algorithm option. \n";
                     }

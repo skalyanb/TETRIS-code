@@ -24,7 +24,9 @@ struct Parameters {
     std::string algo_name = "none!";
     bool print_to_console = false;
     bool print_to_file = true;
-    bool edge_count_available = true;
+    bool edge_count_available = true; // Only relevant for algorithms which use m in the final estimation
+    bool CSS = false; // Only relevant for SRW algorithm. See the corresponding function for details
+    bool NB = false;  // Only relevant for SRW algorithm. See the corresponding function for details
 };
 
 // A structure to store an edge with all the relavant information

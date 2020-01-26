@@ -24,6 +24,8 @@ struct config_params{
     bool print_to_file=false;
     bool degree_bin_seed=false;
     bool edge_count_available = true;
+    bool CSS = false;
+    bool NB = false;
 };
 
 void ParseToken(config_params& cfp, string key, string val) {
@@ -92,6 +94,24 @@ void ParseToken(config_params& cfp, string key, string val) {
             cfp.edge_count_available = true;
         else if (val == "false")
             cfp.edge_count_available = false;
+        else {
+            std::cout << "Unknow token encountered \n" ;
+        }
+    }
+    else if (key == "CSS") {
+        if (val == "true")
+            cfp.CSS = true;
+        else if (val == "false")
+            cfp.CSS = false;
+        else {
+            std::cout << "Unknow token encountered \n" ;
+        }
+    }
+    else if (key == "NB") {
+        if (val == "true")
+            cfp.NB = true;
+        else if (val == "false")
+            cfp.NB = false;
         else {
             std::cout << "Unknow token encountered \n" ;
         }

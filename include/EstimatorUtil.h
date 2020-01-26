@@ -17,6 +17,7 @@
 #include "TriangleEstimators.h"
 //#include "BaselineEstimators.h"
 #include "baseline/VertexMCMC.h"
+#include "baseline/SubgraohRandomWalk_SRW.h"
 #include "TETRIS.h"
 
 
@@ -28,7 +29,7 @@ void TriangleEstimator (CGraph *cg, Parameters params, Count true_triangle_count
         auto startTime = std::chrono::high_resolution_clock::now();
         Estimates est = func(cg, params);
         auto endTime = std::chrono::high_resolution_clock::now();
-        std::cout << "Run " << i<<". Time ttaken for this run = " <<
+        std::cout << "Run " << i<<". Time taken for this run = " <<
                   std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count()
                   << " seconds" << std::endl;
         estimates.push_back(est);
