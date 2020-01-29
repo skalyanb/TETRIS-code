@@ -22,11 +22,12 @@ struct Parameters {
     int no_of_repeat = 1;
     double sparsification_prob = 0.1;
     std::string algo_name = "none!";
-    bool print_to_console = false;
+    std::string out_directory = "output/";
+    bool print_to_console = true;
     bool print_to_file = true;
-    bool edge_count_available = true; // Only relevant for algorithms which use m in the final estimation
-    bool CSS = false; // Only relevant for SRW algorithm. See the corresponding function for details
-    bool NB = false;  // Only relevant for SRW algorithm. See the corresponding function for details
+    bool normalization_count_available = false; // Only relevant for algorithms which use m in the final estimation
+    bool CSS = true; // Only relevant for SRW algorithm. See the corresponding function for details
+    bool NB = true;  // Only relevant for SRW algorithm. See the corresponding function for details
 };
 
 // A structure to store an edge with all the relavant information
@@ -43,6 +44,7 @@ struct OrderedEdgeCollection {
     std::vector<OrderedEdge> edge_list; // The list of edges
     std::vector<bool > visited_edge_set; // The set of unique edges in the collection
     std::vector<bool > visited_vertex_set; // The set of unique vertices in the collection
+    VertexIdx no_of_query =0; // The number of uniform random edge queries made during the random walk
 };
 
 // A structure to hold the estimated triangle count and the fraction of the graph seen in the process by an estimator.
@@ -50,6 +52,8 @@ struct Estimates {
     double estimate = 0.0;
     double fraction_of_vertices_seen = 1.0;
     double fraction_of_edges_seen = 1.0; // This fraction is with respect to twice the number of edges
+    double query_complexity = 1.0;  // This fraction is with respect to twice the number of edges.
+                                    // It takes into account edge query and uniform random query.
 };
 
 bool ComparatorByEdgesSeen(Estimates a, Estimates b) {
@@ -80,6 +84,7 @@ struct EstimatorStats {
     double max_error_percentage;
     double vertices_seen_max_percentage;
     double edges_seen_max_percentage;
+    double query_complexity_max_percentage;
 };
 
 #endif //SUBGRAPHCOUNT_ESTIMATORUTILSTRUCT_H

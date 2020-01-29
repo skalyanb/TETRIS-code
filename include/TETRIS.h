@@ -44,6 +44,7 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
     std::vector<OrderedEdge> edge_list;
     std::vector<bool > visited_edge_set(m,false);
     std::vector<bool > visited_vertex_set(n,false);
+    VertexIdx no_of_query = 0;  // Counts the number of query made by the algorithm
 
     /**
      * Local variables
@@ -62,6 +63,7 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
                 deg_of_parent = cg->degree(parent); // degree of parent vertex
                 std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
                 EdgeIdx random_nbor_edge = cg->offsets[parent] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
+                no_of_query++; // One query to the uniform random neighbor oracle
                 child = cg->nbors[random_nbor_edge]; // child is the next vertex on the random walk
                 deg_of_child = cg->degree(child); //degree of child vertex
 
@@ -89,7 +91,7 @@ OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::m
             }
         }
 
-    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
+    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set,no_of_query};
     return returnEdgeCollection;
 }
 
@@ -123,16 +125,12 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
      */
     std::discrete_distribution<EdgeIdx> wghted_dist_on_edges(edge_degree_list.begin(), edge_degree_list.end());
 
-
     /**
      * Local variables -- estimators
      */
     double X = 0, Y = 0, Z = 0;
 
-
     for (EdgeIdx i = 0; i < params.subsample_size; i++) {
-
-
         EdgeIdx index = wghted_dist_on_edges(mt); // Sample an edge proportionate to its degree
         OrderedEdge edge = edge_collection.edge_list[index]; // Retrieve the edge information
 
@@ -141,20 +139,19 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
          */
         std::uniform_int_distribution<VertexIdx> distNbor(0, edge.degree - 1);
         EdgeIdx random_nbor_edge = cg->offsets[edge.u] + distNbor(mt);
+        edge_collection.no_of_query++; // One query to the uniform random neighbor oracle
         VertexIdx w = cg->nbors[random_nbor_edge];
-
         /**
          * Update the edges and vertices seen so far data structure
          */
-        //
         edge_collection.visited_edge_set[random_nbor_edge] = true;
         edge_collection.visited_vertex_set[w] = true;
-
         /**
          * Now check for a triangle: a triangle is only found if u < v < w and {u,v,w} forms a triangle.
          */
         VertexIdx deg_of_w = cg->degree(w);
         VertexIdx deg_of_v = cg->degree(edge.v);
+        edge_collection.no_of_query++; // One query to the edge query in the if condition
         if (cg->isEdgeBinary(w, edge.v) && (deg_of_w > deg_of_v || (deg_of_w == deg_of_v && w > edge.v))) {
             EdgeIdx third_edge = cg->getEdgeBinary(edge.v, w);
             edge_collection.visited_edge_set[third_edge] = true;
@@ -176,6 +173,7 @@ Estimates SampleByEdgeDegree(CGraph *cg, OrderedEdgeCollection &edge_collection,
     EdgeIdx edges_seen = std::count(edge_collection.visited_edge_set.begin(),edge_collection.visited_edge_set.end(),true);
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / cg->nVertices;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / cg->nEdges;
+    return_estimate.query_complexity = edge_collection.no_of_query * 100.0 / cg->nEdges;
 
     return return_estimate;
 }
@@ -205,7 +203,7 @@ Estimates TETRIS(CGraph *cg, Parameters params) {
     /**
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
      */
-    if (!params.edge_count_available)
+    if (!params.normalization_count_available)
         edge_count_output = EstimateEdgeCount (cg,randomEdgeCollection, params, skip);
     else
         edge_count_output.estimate = cg->nEdges *1.0;
@@ -214,8 +212,6 @@ Estimates TETRIS(CGraph *cg, Parameters params) {
      * Perform a weighted sampling and estimate the triangle count
      */
     output = SampleByEdgeDegree(cg, randomEdgeCollection, params, mt, edge_count_output.estimate);
-
-
     return output;
 }
 

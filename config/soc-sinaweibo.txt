@@ -21,7 +21,7 @@
 # Our algo: EstTriByRWandWghtedSampling
 # Baseline:
 # Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
-# Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
+# Sample edge and count based: EstTriByEdgeSampleAndCount, SERWC
 # Neighbor sample: EstTriByRWandNborSampling
 #######
 input_files=graphs/graph_in_edges_format/soc-sinaweibo.edges

@@ -6,7 +6,7 @@ vertices,edges,triangles
 513969,6380904,58771288
 no_of_repeat,seed_count,walk_length,subsample_size,sparsification_prob
 100,1,15952,797,0.003
-#EstTriByRWAndCountPerEdge
+#SERWC
 #Results: Mean Err, Median Err, Max Err, stddev Err (in %) of simple sampling
 11.809,9.510,32.974,8.747 
 

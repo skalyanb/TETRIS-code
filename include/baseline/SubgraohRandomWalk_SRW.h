@@ -13,7 +13,6 @@
 #include "../util/RandomWalkUtils.h"
 #include "../EstimateEdgeCount.h"
 
-
 /**
  * Algorithm Details:
  * 1. Start a random walk from a vertex v1
@@ -24,6 +23,11 @@
  * 5b. If it forms a triangle, and CSS flag is set, then add m/(1/d(v1)+1/(dv2)+1/d(v3)).
  * 6. Finally, take the average over the length of the random walk.
  * Note that the factor m/3 can be multiplied at the end of the algorithm
+ * The parameter NB decides if the random walk is non-backtracking.
+ * If it is true, then v1-v2-v1 becomes an invalid state.
+ * We sample another random neighbor in that case.
+ * Also, in final estimation, d'(u)=d(u)-1 is used.
+ * We are assuming NB is set to true only when CSS is also set to true
  * @param cg
  * @param params
  * @return
@@ -31,7 +35,6 @@
 
 Estimates SRW1(CGraph *cg, Parameters params)
 {
-
     /**
      * Setting of various input parameters for executing the algorithm
      */
@@ -50,7 +53,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
     std::mt19937 mt(rd());
 
     /**
-     * Data structures for book-keeping and local variables
+     * Data structures for book-keeping and local variables.
      * We do not really need the OrderedEdge vector for SRW.
      * However, if m is not available, and needs to be estimated based on the random walk,
      * then we need the collection of edges.
@@ -58,6 +61,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
     std::vector<OrderedEdge> edge_list;
     std::vector <bool > visited_vertex_set(n,false);
     std::vector <bool > visited_edge_set(m,false);
+    VertexIdx no_of_query = 0;  // Counts the number of query made by the algorithm
     double X = 0; // This variable keeps a running count of the estimator
     VertexIdx v1, v2, v3, deg_of_v1, deg_of_v2, deg_of_v3;
     EdgeIdx random_nbor_edge;
@@ -70,8 +74,10 @@ Estimates SRW1(CGraph *cg, Parameters params)
     deg_of_v1 = cg->degree(v1); // degree of parent vertex
     if (deg_of_v1 == 0)  // If we are stuck with an isolate vertex, we change the seed
         v1 = AlternateSeed(cg,mt);
-    std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_v1 - 1);
-    random_nbor_edge = cg->offsets[v1] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
+    deg_of_v1 = cg->degree(v1);
+    std::uniform_int_distribution<VertexIdx> dist_parent(0, deg_of_v1 - 1);
+    no_of_query++; // One query to the uniform random neighbor oracle
+    random_nbor_edge = cg->offsets[v1] + dist_parent(mt); // TODO: check randomness. same seeding ok?
     v2 = cg->nbors[random_nbor_edge]; // child is the potential next vertex on the random walk
     deg_of_v2 = cg->degree(v2);// degree of the child vertex
 
@@ -87,8 +93,24 @@ Estimates SRW1(CGraph *cg, Parameters params)
     for (EdgeIdx wL = 0; wL < walk_length; wL++) {  // Perform a random walk of length walk_length from the vertex v2
         std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_v2 - 1); // v2 is the current last visited vertex on the random walk
         random_nbor_edge = cg->offsets[v2] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
+        no_of_query++; // One query to the uniform random neighbor oracle
         v3 = cg->nbors[random_nbor_edge]; // v3 is the  new vertex on the random walk
         deg_of_v3 = cg->degree(v3);// degree of the vertex v3
+
+        /**
+         * The parameter NB decides if the random walk is non-backtracking.
+         * If it is true, then v1-v2-v1 becomes an invalid state.
+         * We sample another random neighbor in that case.
+         * Also, in final estimation, d'(u)=d(u)-1 is used.
+         */
+        if (params.NB) {
+            while (v1 == v3) { // We reached an invalid state, resample.
+                random_nbor_edge = cg->offsets[v2] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
+                no_of_query++; // One query to the uniform random neighbor oracle
+                v3 = cg->nbors[random_nbor_edge]; // v3 is the  new vertex on the random walk
+                deg_of_v3 = cg->degree(v3);// degree of the vertex v3
+            }
+        }
 
         /**
          * Update data structures
@@ -103,15 +125,25 @@ Estimates SRW1(CGraph *cg, Parameters params)
          * So we check if (v1,v3) edge is present and if all v1,v2 and v3 are distinct
          */
         EdgeIdx e = cg->getEdgeBinary(v1,v3);
+        no_of_query++; // One query to the edge query oracle
         if (e!= -1 && v1!=v2 && v2!=v3 && v1!=v3) {
-            if (params.CSS){
-                double denom = 1.0 / deg_of_v1 + 1.0 /deg_of_v2 + 1.0 /deg_of_v3;
+            if (params.CSS && params.NB) {  // Both CSS and NB are true
+                double denom = (1.0 / (deg_of_v1-1)) +
+                                (1.0 /(deg_of_v2-1)) +
+                                (1.0 /(deg_of_v3-1));
                 X += 1.0 / denom;
             }
-            else
+            else if (params.CSS){ // Only CSS is true
+                double denom = (1.0 / deg_of_v1) + (1.0 /deg_of_v2) + (1.0 /deg_of_v3);
+                X += 1.0 / denom;
+            }
+            else if (params.NB) // Only NB is true
+                X+= deg_of_v2 - 1;
+            else                // Both CSS and NB are false
                 X += deg_of_v2;
-        }
 
+
+        }
 
         /**
          * Update data structures
@@ -122,6 +154,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
          * slide the window of history!
          */
         v1 = v2;
+        deg_of_v1 = deg_of_v2;
         v2 = v3;
         deg_of_v2 = deg_of_v3;
     }
@@ -130,8 +163,8 @@ Estimates SRW1(CGraph *cg, Parameters params)
     /**
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
      */
-    if (!params.edge_count_available) {
-        int skip = 25;
+    if (!params.normalization_count_available) {
+        int skip = 100;
         OrderedEdgeCollection randomEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
         Estimates edge_count_output = EstimateEdgeCount(cg, randomEdgeCollection, params, skip);
         edge_estimate = edge_count_output.estimate;
@@ -142,7 +175,11 @@ Estimates SRW1(CGraph *cg, Parameters params)
     /**
      * Estimate the number of triangles.
      */
-    double triangleEstimate = (1.0/walk_length) * X * edge_estimate / 6.0 ; // Note that m is actually twice the number of edges
+    double triangleEstimate = 0.0;
+    if (params.CSS)
+        triangleEstimate = (1.0/walk_length) * X * (edge_estimate / 2.0) ; // Note that m is actually twice the number of edges
+    else
+        triangleEstimate = (1.0/walk_length) * X * (edge_estimate/2.0) * (1/ 3.0) ; // Note that m is actually twice the number of edges
 
     /**
      * Populate the return structure
@@ -155,6 +192,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
 
     return_estimate.fraction_of_vertices_seen = vertices_seen * 100.0 / n;
     return_estimate.fraction_of_edges_seen = edges_seen * 100.0 / m;
+    return_estimate.query_complexity = no_of_query * 100.0 /m;
 
     return return_estimate;
 }

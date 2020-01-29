@@ -21,24 +21,26 @@
 # web-indochina-2004-all.edges = 60115561372
 # web-cc12-PayLevelDomain.edges = 29923075742
 ##### Algo_names
-# Our algo: EstTriByRWandWghtedSampling
+# Our algo: TETRIS
 # Baseline:
 # Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
-# Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
+# Sample edge and count based: EstTriByEdgeSampleAndCount, SERWC
 # Neighbor sample: EstTriByRWandNborSampling
 #
-#######
-input_files=graphs/CSR/soc-sinaweibo.edges.csr,graphs/CSR/soc-orkut.edges
-triangle_count=212977684,524643952
+input_files=graphs/CSR/soc-orkut.edges.csr
+triangle_count=524643952
 seed_count=1
 subsample_prob=0.05
-no_of_repeats=100
-algo_names=SRW1,TETRIS,VertexMCMC
-sparsification_prob=0.0002,0.0004,0.0006,0.0008,0.001
+no_of_repeats=10
+algo_names=VertexMCMC
+sparsification_prob=0.01,0.0125,0.0150,0.0175,0.02,0.0225,0.0250,0.0275,0.03
+# the trialing "/" is important in the out_directory
+out_directory=output/
 print_to_console=true
-print_to_file=true
+print_to_file=false
 degree_bin_seed=false
-edge_count_available=true
+# the following is m for TETRIS and SRW and square sum of degrees for VertexMCMC.
+normalization_count_available=false
 # the following two (CSS and NB) are specific parameters for the SRW problem. It can be ignored while executing other algorithms.
 # The default state is false for these two parameters
 CSS=true

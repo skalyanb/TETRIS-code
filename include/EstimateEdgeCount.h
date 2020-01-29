@@ -11,63 +11,17 @@
 //#include "EstimatorUtil.h"
 #include "EstimatorUtilStruct.h"
 
-
-OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, Parameters params, std::mt19937 mt) {
-    // Get the number of vertices, number of edges, Initialize scaling to number of edges.
-    VertexIdx n = cg->nVertices;
-    EdgeIdx m = cg->nEdges; // TODO note that m is double of the number of edges in the graph
-    VertexIdx seed_count = params.seed_count;
-    EdgeIdx walk_length = params.walk_length;
-
-    // The list of edges found by the random walk process
-    std::vector<OrderedEdge> edge_list;
-
-    // Keep track of the vertices and edges seen so far by the random walk
-    std::vector<bool> visited_edge_set (m,false);
-    std::vector<bool> visited_vertex_set (n,false);
-
-    VertexIdx src = 0, dst = 0;
-    EdgeIdx nEdges = 0;
-    std::uniform_int_distribution<EdgeIdx> unif_rand_edge(0, m - 1);
-
-
-    // Initialize a uniform distribution for generating seed vertices
-    //std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
-
-    // Perform a random walk for seed_count many times
-    for (EdgeIdx i = 0; i < walk_length ; i++) {
-        EdgeIdx e = unif_rand_edge(mt);
-        dst = cg->nbors[e];
-        // binary search the array cg->offset to find the index v, such that edges[e] lies between cg->offset[v]
-        // and cg->offset[v+1]. We achieve this by calling std::upper_bound
-        src = std::upper_bound (cg->offsets, cg->offsets+n, e) - cg->offsets -1;
-
-        // sanity check: the edge {src,dst} must have index edges[e].
-        if (cg->getEdgeBinary(src,dst) != e)
-            printf("Bug in the code!! Run!!!! \n\n");
-
-        edge_list.push_back(OrderedEdge{src, dst, e, 0});
-        visited_edge_set[e] = true;
-        visited_vertex_set[src] = true;
-        visited_vertex_set[dst] = true;
-    }
-
-    // Create return structure for this function.
-    // The number of edges produced by the random walk is walk_length;
-//    std::copy(visited_edge_list.begin(),
-//              visited_edge_list.end(),
-//              std::inserter(visited_edge_set, visited_edge_set.end()));
-//
-//    std::copy(visited_vertex_list.begin(),
-//              visited_vertex_list.end(),
-//              std::inserter(visited_vertex_set, visited_vertex_set.end()));
-
-    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
-//    printf("Random walk: walk length = %lld ",walk_length);
-//    printf("Edges Seen=%lu, Vertices Seen=%lu\n",visited_edge_set.size(),visited_vertex_set.size());
-
-    return returnEdgeCollection;
-}
+/**
+ * Algorithm Details:
+ * 1. Perform a long random walk. Let the set be R. This is given as input to this method.
+ * 2. Let R_skip be the set of edges taken at an interval of "skip" from the set R
+ * 3.
+ * @param cg
+ * @param randomEdgeCollection
+ * @param params
+ * @param skip
+ * @return
+ */
 
 
 Estimates EstimateEdgeCount (CGraph *cg, OrderedEdgeCollection randomEdgeCollection, Parameters params, int skip)

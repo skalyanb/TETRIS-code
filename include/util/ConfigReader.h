@@ -12,6 +12,7 @@
 #include <string>
 
 using namespace std;
+
 struct config_params{
     vector<string> input_files;
     vector <long long int> triangle_count;
@@ -20,12 +21,13 @@ struct config_params{
     double subsample_prob;
     vector<int> seed_count;
     vector <string> algo_names;
+    string out_directory;
     bool print_to_console =true;
     bool print_to_file=false;
     bool degree_bin_seed=false;
     bool edge_count_available = true;
-    bool CSS = false;
-    bool NB = false;
+    bool CSS = true;
+    bool NB = true;
 };
 
 void ParseToken(config_params& cfp, string key, string val) {
@@ -71,6 +73,10 @@ void ParseToken(config_params& cfp, string key, string val) {
             cfp.algo_names.emplace_back(token);
     }
 
+    else if (key == "out_directory") {
+        cfp.out_directory = val;
+    }
+
     else if (key == "print_to_console") {
         if (val == "true")
             cfp.print_to_console = true;
@@ -89,7 +95,7 @@ void ParseToken(config_params& cfp, string key, string val) {
         }
     }
 
-    else if (key == "edge_count_available") {
+    else if (key == "normalization_count_available") {
         if (val == "true")
             cfp.edge_count_available = true;
         else if (val == "false")

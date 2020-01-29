@@ -13,7 +13,7 @@
 
 #include "EstimatorUtilStruct.h"
 
-EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count true_triangle_count) {
+EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count true_count) {
 
     int no_of_repeats = (int) algo_estimates.size();
 
@@ -22,7 +22,7 @@ EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count t
     // TODO consider using lambda function
     for (int i = 0; i < no_of_repeats; i++)
         algo_error_percentage_list[i] =
-                std::abs(algo_estimates[i].estimate - true_triangle_count) * 100 / true_triangle_count;
+                std::abs(algo_estimates[i].estimate - true_count) * 100 / true_count;
 
     int middle_index = no_of_repeats / 2;
     std::nth_element(algo_error_percentage_list.begin(), algo_error_percentage_list.begin() + middle_index,
@@ -50,9 +50,13 @@ EstimatorStats GetErrorStatistics(std::vector<Estimates> algo_estimates, Count t
                                                       algo_estimates.end(),
                                                       ComparatorByEdgesSeen)).fraction_of_edges_seen;
 
+    double query_complexity_percentage = (*std::max_element(algo_estimates.begin(),
+                                                      algo_estimates.end(),
+                                                      ComparatorByEdgesSeen)).query_complexity;
+
     EstimatorStats est_stats = {no_of_repeats, mean_error_percentage, median_error_percentage,
                                 stdev_error_percentage, max_error_percentage,
-                                vertices_seen_percentage, edges_seen_percentage};
+                                vertices_seen_percentage, edges_seen_percentage, query_complexity_percentage};
     return est_stats;
 }
 
@@ -62,11 +66,11 @@ void WriteHeaderInOutput(FILE *f, Parameters params, CGraph *cg, Count triangle_
     fprintf(f, "#Filename = %s , Algo name = %s, "
                "edge count available=%s, CSS = %s, NB=%s \n",
             params.filename.c_str(), params.algo_name.c_str(),
-            params.edge_count_available ? "true":"false",
+            params.normalization_count_available ? "true":"false",
             params.CSS ? "true":"false",
             params.NB ? "true":"false");
     fprintf(f, "########################\n");
-    fprintf(f, "#Graph Properties\n");
+    fprintf(f, "#Algorithm : %s\n",params.algo_name.c_str());
     fprintf(f, "########################\n");
     fprintf(f, "vertices,edges,triangles\n");
     fprintf(f, "%lld,%lld,%lld\n", cg->nVertices, cg->nEdges, triangle_count);
@@ -80,13 +84,13 @@ void WriteHeaderInOutput(FILE *f, Parameters params, CGraph *cg, Count triangle_
 
 void WriteAlgorithmOutput(FILE *f, std::string algo_name, Parameters params,
                           EstimatorStats est_stats) {
-    fprintf(f, "#%s\n", algo_name.c_str());
+    fprintf(f, "#--------------------------------------------------------%s\n", algo_name.c_str());
     fprintf(f, "#Results: Mean Err, Median Err, Max Err, stddev Err (in %%) of simple sampling\n");
     fprintf(f, "%.3lf,%.3lf,%.3lf,%.3lf \n\n", est_stats.mean_error_percentage,
             est_stats.median_error_percentage, est_stats.max_error_percentage,
             est_stats.stddev_error_percentage);
-    fprintf(f, "Fraction of edges seen, fraction of vertices seen(maximum over all run)\n");
-    fprintf(f, "%.6lf,%.6lf\n\n", est_stats.edges_seen_max_percentage,
+    fprintf(f, "Query Complexity, Fraction of edges seen, fraction of vertices seen(maximum over all run)\n");
+    fprintf(f, "%.6lf,%.6lf,%.6lf\n\n", est_stats.query_complexity_max_percentage, est_stats.edges_seen_max_percentage,
             est_stats.vertices_seen_max_percentage);
 }
 
