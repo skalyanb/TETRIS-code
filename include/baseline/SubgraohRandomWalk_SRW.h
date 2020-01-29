@@ -103,7 +103,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
          * We sample another random neighbor in that case.
          * Also, in final estimation, d'(u)=d(u)-1 is used.
          */
-        if (params.NB) {
+        if (params.NB and deg_of_v2!= 1) { // if v_2 is singleton, then only one option
             while (v1 == v3) { // We reached an invalid state, resample.
                 random_nbor_edge = cg->offsets[v2] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
                 no_of_query++; // One query to the uniform random neighbor oracle
@@ -164,7 +164,7 @@ Estimates SRW1(CGraph *cg, Parameters params)
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
      */
     if (!params.normalization_count_available) {
-        int skip = 100;
+        int skip = 25;
         OrderedEdgeCollection randomEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
         Estimates edge_count_output = EstimateEdgeCount(cg, randomEdgeCollection, params, skip);
         edge_estimate = edge_count_output.estimate;

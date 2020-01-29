@@ -120,7 +120,7 @@ Estimates SERWC(CGraph *cg, Parameters params)
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
      */
     if (!params.normalization_count_available) {
-        int skip = 100;
+        int skip = 25;
         OrderedEdgeCollection randomEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
         Estimates edge_count_output = EstimateEdgeCount(cg, randomEdgeCollection, params, skip);
         edge_estimate = edge_count_output.estimate;

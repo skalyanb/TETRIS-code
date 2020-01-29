@@ -8,8 +8,9 @@
 # algo_names: Multiple options can be provided with comma seperated.
 # print_to_console: default value true
 # print_to_file: default value false
+# degree_bin_seed=false  ; if true, then the seed vertex will be randomly selected accorss various degree bins
 ##### Some example graphs and their true triangle count:
-# soc-flickr.edges = 58,771,288
+# soc-flickr.edges = 58771288
 # soc-flickr-und.edges = 548658705
 # soc-friendster.edges = 4173724142
 # soc-livejournal.edges = 83552703
@@ -17,19 +18,31 @@
 # soc-sinaweibo.edges = 212977684
 # soc-twitter-konect.edges = 34824916864
 # socfb-A-anon.edges = 55606428
+# web-indochina-2004-all.edges = 60115561372
+# web-cc12-PayLevelDomain.edges = 29923075742
 ##### Algo_names
 # Our algo: TETRIS
 # Baseline:
 # Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
-# Sample edge and count based: EstTriByEdgeSampleAndCount, EstTriByRWAndCountPerEdge
+# Sample edge and count based: EstTriByEdgeSampleAndCount, SERWC
 # Neighbor sample: EstTriByRWandNborSampling
-#######
-input_files=graphs/graph_in_edges_format/soc-flickr.edges
-triangle_count=58771288,548658705,83552703,55606428
+#
+# the trialing "/" is important in the out_directory
+# normalization_count_available: this is m for TETRIS and SRW and square sum of degrees for VertexMCMC.
+# the following two (CSS and NB) are specific parameters for the SRW problem. It can be ignored while executing other algorithms.
+# The default state is false for these two parameters
+# CSS and NB
+input_files=graphs/CSR/soc-orkut.edges.csr,graphs/CSR/soc-sinaweibo.edges.csr
+triangle_count=524643952,212977684
 seed_count=1
-sparsification_prob=0.0001,0.0002,0.00025,0.0003,0.0004,0.0005,0.0006,0.0007,0.00075,0.0008,0.0009,0.001,0.002,0.0025,0.003,0.004,0.005,0.006,0.007,0.0075,0.008,0.009,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.075,0.08,0.09,0.1
 subsample_prob=0.05
-no_of_repeats=25
-algo_names=EstTriByEdgeSampleAndCount,SERWC,EstTriByRW,EstTriByRWandNborSampling,EstTriBySparsification,EstTriByUniformSampling
+no_of_repeats=100
+algo_names=TETRIS,SRW1,VertexMCMC
+sparsification_prob=0.01,0.0125,0.015,0.0175,0.02,0.0225,0.025,0.0275,0.03
+out_directory=output/plot_data/baseline_TETRIS_SRW_MCMC/
 print_to_console=true
 print_to_file=true
+normalization_count_available=false
+CSS=true
+NB=false
+

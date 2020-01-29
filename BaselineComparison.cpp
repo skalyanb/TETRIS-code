@@ -127,6 +127,7 @@ int main(int argc, char *argv[]) {
                         TriangleEstimator(&cg, params, triangle_count, SRW1);
                     }
                     else if (algo_name == "SERWC") { // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
+                        params.walk_length = floor(params.walk_length * 1 / 500);
                         TriangleEstimator(&cg, params, triangle_count, SERWC);
                     }
                     else

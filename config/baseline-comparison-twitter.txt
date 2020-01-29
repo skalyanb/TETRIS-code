@@ -1,0 +1,13 @@
+input_files=graphs/CSR/soc-twitter-konect.edges.csr
+triangle_count=34824916864
+seed_count=1
+subsample_prob=0.05
+no_of_repeats=100
+algo_names=TETRIS,SRW1,VertexMCMC
+sparsification_prob=0.01,0.0125,0.015,0.0175,0.02,0.0225,0.025,0.0275,0.03
+out_directory=output/plot_data/baseline_TETRIS_SRW_MCMC/
+print_to_console=true
+print_to_file=true
+normalization_count_available=false
+CSS=true
+NB=false
