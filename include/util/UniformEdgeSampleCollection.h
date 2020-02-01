@@ -23,6 +23,7 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, const Parameters &params
     std::vector<OrderedEdge> edge_list;
     std::vector<bool> visited_edge_set (m,false);
     std::vector<bool> visited_vertex_set (n,false);
+    VertexIdx no_of_query = 0;  // Counts the number of query made by the algorithm
     VertexIdx src = 0, dst = 0;
     EdgeIdx nEdges = 0;
     /**
@@ -36,6 +37,7 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, const Parameters &params
     for (EdgeIdx i = 0; i < walk_length ; i++) {
         EdgeIdx e = unif_rand_edge(mt);
         dst = cg->nbors[e];
+        no_of_query++; // One query to the uniform random neighbor oracle
         // binary search the array cg->offset to find the index v, such that edges[e] lies between cg->offset[v]
         // and cg->offset[v+1]. We achieve this by calling std::upper_bound
         src = std::upper_bound (cg->offsets, cg->offsets+n, e) - cg->offsets -1;
@@ -67,7 +69,7 @@ OrderedEdgeCollection GetEdgesByUniSampling(CGraph *cg, const Parameters &params
         visited_vertex_set[dst] = true;
     }
 
-    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set};
+    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set, no_of_query};
     return returnEdgeCollection;
 }
 

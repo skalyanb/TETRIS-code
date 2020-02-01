@@ -11,66 +11,11 @@
 #include "EstimatorUtilStruct.h"
 #include "TriangleEstimators.h"
 #include "TETRIS.h"
+#include "RandomWalkUtils.h"
+#include "BaselineUtil.h"
 
 
 bool IsTrue (bool b) {return b;}
-
-CGraph MakeMultiGraph (VertexIdx n, std::vector<VertexIdx > srcs, std::vector<VertexIdx > dsts) {
-
-    // First rename the vertices in srcs and dsts to figure out how many vertices are actually
-    // and remove those vertice.
-
-    // Create a map that will map every vertex id the in the input file to an integer in the output file
-    std::unordered_map <VertexIdx, VertexIdx> dict;
-    dict.reserve(100000000); // 100M
-    VertexIdx index = 0;
-
-    for (VertexIdx idx=0; idx < srcs.size(); idx++) {
-        VertexIdx node1 = srcs[idx];
-        VertexIdx node2 = dsts[idx];
-        // Find if the vertices are already present in the dictionary
-        auto it1 = dict.find (node1);
-        auto it2 = dict.find (node2);
-
-        // If the first vertex is present then replace the node1 with the corresponding node id;
-        // Otherwise create a new node for this vertex.
-        if (it1!= dict.end())
-            node1 = it1->second;
-        else {
-            dict[node1] = index;
-            node1 = index;
-            index++;
-        }
-        // Repeat the same for the second node
-        if (it2!= dict.end())
-            node2 = it2->second;
-        else {
-            dict[node2] = index;
-            node2 = index;
-            index++;
-        }
-        //Add the edge (node1,node2)
-        srcs[idx] = node1;
-        dsts[idx] = node2;
-    }
-
-    //Sanity check
-    if (dict.size()!= index)
-        printf("Dict size=%lu, index = %lld, Something went wrong.",dict.size(),index);
-
-    Graph G_p;
-    G_p.nVertices = dict.size();
-    G_p.nEdges = srcs.size();
-    G_p.srcs = new VertexIdx[G_p.nEdges];
-    G_p.dsts = new VertexIdx[G_p.nEdges];
-
-    std::copy(std::begin(srcs), std::end(srcs), G_p.srcs);
-    std::copy(std::begin(dsts), std::end(dsts), G_p.dsts);
-
-    // Convert the graph into CSR representation. The second parameters requests for in-pace operation.
-    CGraph CG_p = makeCSR(G_p,true);
-    return CG_p;
-}
 
 CGraph MakeSimpleGraph (VertexIdx n, std::set<std::pair<VertexIdx ,VertexIdx >> edge_list) {
 
@@ -167,105 +112,6 @@ Estimates EstTriBySparsification(CGraph *cg, Parameters params)
     return_estimate.estimate = triangleEstimate;
     return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
     return_estimate.fraction_of_edges_seen = CG_p.nEdges * 100.0 / m;
-
-    return return_estimate;
-}
-
-/**
- * Algorithm:
- * 0. Let p be the sparsification parameter. The goal is to sample mp many edges of the graph.
- * 1. Sample mp many edges from the graph, independently and uniformly at random.
- * 2. Let the subsampled graph be G_p.
- * 3. Count the number of triangles in G_p and scale the count up by 1/p^3
- * @param cg
- * @param params
- * @return
- */
-Estimates EstTriByUniformSampling(CGraph *cg, Parameters params)
-{
-    // This algorithm is implemented by a three step process.
-    // First, we construct a new graph object from the subsampled edges; call it G_p
-    // Then, we convert it into a CGraph object
-    // Finally, we call exact triangle count routine on CGraph object
-
-    double p = params.sparsification_prob;
-    VertexIdx n = cg->nVertices;
-    EdgeIdx m = cg->nEdges; // Note that m is twice the number of edges
-    EdgeIdx edges_in_G_p = floor(m*p)/2; // We sample edges_in_G_p many edges independently anf uniformly at random
-    // Why we divide by 2? Because the number of edges in cg ig m/2. So, number of edges in G_p = mp/2.
-    // This will ensure that we only see p fraction of the total edges. Note that while constructing the
-    // graph G_p, we will have mp many entries in the adjacency list representation.
-
-    // Set up random number generator
-    std::random_device rd;
-    // Using this random number generator initializize a PRNG: this PRNG is passed along to
-    // draw an element from various distribution0-
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<EdgeIdx> unif_rand_edge(0, m - 1);
-
-    // Sample edges_in_G_p many edges independently and u.a.r from G
-    VertexIdx src = 0, dst = 0;
-    EdgeIdx nEdges = 0;
-    std::vector<VertexIdx > srcs;
-    std::vector<VertexIdx > dsts;
-
-    std::unordered_set <VertexIdx > visited_vertex_set; // This will be used to find the number of vertices in G_p
-    std::unordered_set <EdgeIdx > visited_edge_set; // This will be used to find the number of vertices in G_p
-
-//    std::set<std::pair <VertexIdx,VertexIdx>> edge_list; // This list will be used to track distinct edges in the random walk.
-
-    for (EdgeIdx i = 0; i < edges_in_G_p ; i++) {
-        EdgeIdx e = unif_rand_edge(mt);
-        dst = cg->nbors[e];
-        // binary search the array cg->offset to find the index v, such that edges[e] lies between cg->offset[v]
-        // and cg->offset[v+1]. We achieve this by calling std::upper_bound
-        src = std::upper_bound (cg->offsets, cg->offsets+n, e) - cg->offsets -1;
-
-        // sanity check: the edge {src,dst} must have index edges[e].
-        if (cg->getEdgeBinary(src,dst) != e)
-            printf("Bug in the code!! Run!!!! \n\n");
-
-        srcs.emplace_back(src);
-        dsts.emplace_back(dst);
-        ++nEdges;
-        srcs.emplace_back(dst);  // The graph representation (adjacency list) requires both the edges to be present
-        dsts.emplace_back(src);
-        ++nEdges;
-
-//        edge_list.insert(std::make_pair(src,dst));
-//        edge_list.insert(std::make_pair(dst,src));
-
-        visited_vertex_set.insert(src);
-        visited_vertex_set.insert(dst);
-        visited_edge_set.insert(e);
-    }
-
-    // Construct the induced graph G_p
-    // Note that G_p is a multi-graph. When counting triangles exactly in G_p, we consider this multiplicity.
-    CGraph CG_p = MakeMultiGraph(n,srcs,dsts);
-
-    // Now construct a simple version of this graph by ignoring the multiplicity
-//    CGraph CG_p_s = MakeSimpleGraph(n,edge_list);
-
-    // Count the exact number of triangles in the sparsified graph CG_p and scale it up.
-    Estimates triangles_in_Gp = CountExactTriangles(&CG_p);
-    delCGraph(CG_p);
-    double scale = 1.0 / pow(p,3);
-    double triangleEstimate = triangles_in_Gp.estimate * scale ;
-//    printf ("Multi: %lld,  %lf\n",CG_p.nEdges,triangleEstimate);
-
-    // Count the exact number of triangles in the sparsified simple graph CG_p_s and scale it up.
-//    Estimates triangles_in_Gp_s = CountExactTriangles(&CG_p_s);
-//    double scale_s = 1.0 / pow(p,3);
-//    double triangleEstimate_s = triangles_in_Gp_s.triangle_estimate * scale_s ;
-////    printf ("Simple : %lld,  %lf\n",CG_p_s.nEdges,triangleEstimate_s);
-
-    Estimates return_estimate = {};
-    return_estimate.estimate = triangleEstimate;
-    return_estimate.fraction_of_vertices_seen = visited_vertex_set.size() * 100.0 / n;
-    return_estimate.fraction_of_edges_seen = 2 *visited_edge_set.size() * 100.0 / m;
-    // Why the multiplication by 2? The fraction of edges seen is effectively
-    // compared against all the entries in the adjacency list, which is 2m.
 
     return return_estimate;
 }

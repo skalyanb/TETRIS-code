@@ -26,24 +26,9 @@
 
 Estimates EstimateEdgeCount (CGraph *cg, OrderedEdgeCollection randomEdgeCollection, Parameters params, int skip)
 {
-//    OrderedEdgeCollection randomEdgeCollection;
-
-    // Set up random number generator
-//    std::random_device rd;
-//    // Using this random number generator initializize a PRNG: this PRNG is passed along to
-//    // draw an element from various distribution
-//    std::mt19937 mt(rd());
-
     EdgeIdx collsion_count =0;
     double numerator = 0;
-    int c = 1;
-
-    // Now count the number of collision in the random edge collection
-    //1. By random walk
-//    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
-    c = skip;
-    //2. By uniform edge collection
-//    randomEdgeCollection = GetEdgesByUniSampling(cg, params, mt);
+    int c=skip;
 
     EdgeIdx total_edge = randomEdgeCollection.edge_list.size();
     EdgeIdx num_edge = 0;

@@ -23,6 +23,7 @@
 #include "baseline/VertexMCMC.h"
 #include "baseline/SubgraohRandomWalk_SRW.h"
 #include "TETRIS.h"
+#include "util/RandomWalkUtils.h"
 
 
 template <typename TF>
@@ -179,7 +180,7 @@ void DegreeSqSumEstimatorUtil (CGraph *cg, Parameters params, int c) {
         // draw an element from various distribution
         std::mt19937 mt(rd());
 
-        randomEdgeCollection = GetEdgesByRandomWalk_2(cg, params, mt);
+        randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt, false);
         Estimates est = DegreeSumSquare(cg, randomEdgeCollection, params, c);
         estimates.push_back(est);
         std::cout << i << "\n";

@@ -21,6 +21,9 @@
 #include "include/baseline/VertexMCMC.h"
 #include "include/baseline/SubgraohRandomWalk_SRW.h"
 #include "include/baseline/SERWC.h"
+#include "include/baseline/SEC.h"
+#include "include/baseline/UESS.h"
+
 #include "include/TETRIS.h"
 
 using namespace Escape;
@@ -127,8 +130,16 @@ int main(int argc, char *argv[]) {
                         TriangleEstimator(&cg, params, triangle_count, SRW1);
                     }
                     else if (algo_name == "SERWC") { // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
-                        params.walk_length = floor(params.walk_length * 1 / 500);
+                        params.walk_length = floor(params.walk_length * 2 / 3);
                         TriangleEstimator(&cg, params, triangle_count, SERWC);
+                    }
+                    else if (algo_name == "SEC") { // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
+                        params.walk_length = floor(params.walk_length *2/3);
+                        TriangleEstimator(&cg, params, triangle_count, SEC);
+                    }
+                    else if (algo_name == "UESS") { // Baseline:  do a random walk and count the number of triangles incident on each edge. Then scale.
+                        params.walk_length = floor(params.walk_length);
+                        TriangleEstimator(&cg, params, triangle_count, UESS);
                     }
                     else
                         std::cout << "Unknown algorithm option. \n";
@@ -145,8 +156,8 @@ int main(int argc, char *argv[]) {
 //                        else if (algo_name == "EstTriBySparsification")
 //                            TriangleEstimator(&cg, params, triangle_count, EstTriBySparsification);
 //                            // Uniformly Sample edges, and count the number of triangles in the multi-graph.
-//                        else if (algo_name == "EstTriByUniformSampling")
-//                            TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
+//                        else if (algo_name == "UESS")
+//                            TriangleEstimator(&cg, params, triangle_count, UESS);
                 }
             }
 

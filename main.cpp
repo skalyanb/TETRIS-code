@@ -128,8 +128,8 @@ int main(int argc, char *argv[]) {
 //                        else if (algo_name == "EstTriBySparsification")
 //                            TriangleEstimator(&cg, params, triangle_count, EstTriBySparsification);
 //                            // Uniformly Sample edges, and count the number of triangles in the multi-graph.
-//                        else if (algo_name == "EstTriByUniformSampling")
-//                            TriangleEstimator(&cg, params, triangle_count, EstTriByUniformSampling);
+//                        else if (algo_name == "UESS")
+//                            TriangleEstimator(&cg, params, triangle_count, UESS);
                         else if (algo_name == "EdgeEstimator")
                             EdgeEstimator(&cg, params);
                         else if (algo_name == "DegreeSqEstimator")

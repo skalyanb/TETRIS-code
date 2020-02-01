@@ -1,38 +1,41 @@
 //
-// Created by Suman Kalyan Bera on 2020-01-28.
+// Created by Suman Kalyan Bera on 2020-01-31.
 //
 
-#ifndef SUBGRAPHCOUNT_SERWC_H
-#define SUBGRAPHCOUNT_SERWC_H
+#ifndef SUBGRAPHCOUNT_SEC_H
+#define SUBGRAPHCOUNT_SEC_H
+
 
 #include <set>
 #include <unordered_map>
 
 #include "../EstimatorUtilStruct.h"
 #include "../TriangleEstimators.h"
-#include "../util/RandomWalkUtils.h"
+#include "../util/UniformEdgeSampleCollection.h"
 #include "../util/BaselineUtil.h"
+#include "../EstimateEdgeCount.h"
+
+#include "../util/RandomWalkUtils.h"
 
 /**
  * Algorithm Details:
- * 1. Start a random walk from a vertex v
- * 2. Perform a random walk of given length.
- * 3. At each step of the walk, count the number of triangles incident on the edge.
- * 4. Finally, take the average over the length of the random walk.
- * 5. Scale up by m/3 where m is the number of edges.
+ * 1. Sample an edge uniformly at random from the graph
+ * 2. Count the number of triangles incident on the edge.
+ * 3. Repeat the process and take average count.
+ * 4. Scale up by m/3 where m is the number of edges.
  * @param cg
  * @param params
  * @return
  */
 
-Estimates SERWC(CGraph *cg, Parameters params)
+Estimates SEC(CGraph *cg, Parameters params)
 {
     /**
     * Set up local variables. skip parameter is used in estimating the number of edges in the graph.
     */
     OrderedEdgeCollection randomEdgeCollection;
     double running_count = 0.0, edge_estimate=0.0;
-    int skip = 25;
+    int skip = 1;
 
     /**
     * Set up random number generator
@@ -47,7 +50,7 @@ Estimates SERWC(CGraph *cg, Parameters params)
      * The fourth parameter is set to false to indicate that we do not care about the
      * vertex ordering of each edge
      */
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt, false);
+    randomEdgeCollection = GetEdgesByUniSampling(cg, params, mt);
 
     /**
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
@@ -128,4 +131,5 @@ Estimates SERWC(CGraph *cg, Parameters params)
     return return_estimate;
 }
 
-#endif //SUBGRAPHCOUNT_SERWC_H
+
+#endif //SUBGRAPHCOUNT_SEC_H

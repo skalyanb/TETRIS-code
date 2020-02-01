@@ -23,7 +23,7 @@
 ##### Algo_names
 # Our algo: TETRIS
 # Baseline:
-# Sparsification based: EstTriBySparsification, EstTriByUniformSampling, EstTriByRW
+# Sparsification based: EstTriBySparsification, UESS, EstTriByRW
 # Sample edge and count based: EstTriByEdgeSampleAndCount, SERWC
 # Neighbor sample: EstTriByRWandNborSampling
 #

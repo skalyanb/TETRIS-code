@@ -27,73 +27,8 @@
 #include "util/RandomWalkUtils.h"
 
 
+
 using namespace Escape;
-
-OrderedEdgeCollection GetEdgesByRandomWalk(CGraph *cg, Parameters params, std::mt19937 mt) {
-    /**
-     * Setting of various input parameters for executing the algorithm
-     */
-    VertexIdx n = cg->nVertices;
-    EdgeIdx m = cg->nEdges;
-    VertexIdx seed_count = params.seed_count; // We are working with only one seed vertex for this project
-    EdgeIdx walk_length = params.walk_length;
-
-    /**
-     * Data structures for book-keeping and storing the edges found by the random walk
-     */
-    std::vector<OrderedEdge> edge_list;
-    std::vector<bool > visited_edge_set(m,false);
-    std::vector<bool > visited_vertex_set(n,false);
-    VertexIdx no_of_query = 0;  // Counts the number of query made by the algorithm
-
-    /**
-     * Local variables
-     */
-    VertexIdx parent, child,deg_of_parent, deg_of_child;
-
-    for (VertexIdx sC = 0; sC < seed_count; sC++) {
-
-         VertexIdx seed = params.seed_vertices[sC]; // Random seed vertex is already in the params structure.
-            parent = seed;
-            deg_of_parent = cg->degree(parent); // degree of parent vertex
-            if (deg_of_parent == 0)  // If we are stuck with an isolate vertex, we change the seed
-                parent = AlternateSeed(cg,mt);
-
-            for (EdgeIdx wL = 0; wL < walk_length; wL++) { // Perform a random walk of length walk_length from the seed vertex and collect the edges
-                deg_of_parent = cg->degree(parent); // degree of parent vertex
-                std::uniform_int_distribution<VertexIdx> dist_parent_nbor(0, deg_of_parent - 1);
-                EdgeIdx random_nbor_edge = cg->offsets[parent] + dist_parent_nbor(mt); // TODO: check randomness. same seeding ok?
-                no_of_query++; // One query to the uniform random neighbor oracle
-                child = cg->nbors[random_nbor_edge]; // child is the next vertex on the random walk
-                deg_of_child = cg->degree(child); //degree of child vertex
-
-                /**
-                 * Update the edge collection data structure with relevant information about the edge
-                 */
-                VertexIdx u, v, low_deg;
-                if (deg_of_child < deg_of_parent || (deg_of_child == deg_of_parent && child < parent)) {
-                    u = child;
-                    v = parent;
-                    low_deg = deg_of_child;
-                } else {
-                    u = parent;
-                    v = child;
-                    low_deg = deg_of_parent;
-                }
-                edge_list.push_back(OrderedEdge{u, v, random_nbor_edge, low_deg});
-
-                /**
-                 * Update the book-keeping data structure with the visited edge and vertices
-                 */
-                visited_edge_set[random_nbor_edge] = true;
-                visited_vertex_set[parent] = true;
-                parent = child; // The random walk proceeds with the vertex child
-            }
-        }
-
-    OrderedEdgeCollection returnEdgeCollection = {walk_length, edge_list, visited_edge_set, visited_vertex_set,no_of_query};
-    return returnEdgeCollection;
-}
 
 /**
  * In this function, we simulate degree based sampling from the set of collected edges and estimate the triangle count based on that.
@@ -197,8 +132,10 @@ Estimates TETRIS(CGraph *cg, Parameters params) {
 
     /**
      * Perform a random walk through the graph, and collect the edges in the process
+     * The fourth parameter is set true to indicate that we care about the
+     * lower degree end point of each edge.
      */
-    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt);
+    randomEdgeCollection = GetEdgesByRandomWalk(cg, params, mt,true);
 
     /**
      * Depending on whether the total number of edges in the graphs is available or not, compute it.
