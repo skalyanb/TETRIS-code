@@ -44,29 +44,31 @@ def parse_outfile (data_file):
     return median_error,edges_seen, vertices_seen, query
 
 def populate_data (data_dir):
-    X = []
-    Y=[]
-    Z=[]
-    W = []
+    edges = []
+    medians=[]
+    vertices=[]
+    query = []
     for i, file in enumerate(os.listdir(data_dir)):
         data_file = data_dir + file
         if valid_file(data_dir,file):
-            median_error, edges_seen, vertices_seen, query = parse_outfile(data_file)
-            Y.append(median_error)
-            X.append(edges_seen)
-            Z.append(vertices_seen)
-            W.append(query)
+            median_error, edges_seen, vertices_seen, query_made = parse_outfile(data_file)
+            medians.append(median_error)
+            edges.append(edges_seen)
+            vertices.append(vertices_seen)
+            query.append(query_made)
 
-    return X,Y,Z,W
+    return edges,medians,vertices,query
 
-def make_plot_edge (X,Y,filename, title_info, save):
+def make_plot_edge (X,Y,filename, title_info, algo_list, marker_list, color_list, save):
 
     #scatter plot
     fig, ax_edge = plt.subplots()
 
-    ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
-    ax_edge.plot(X[1], Y[1], c='red', marker='o', label='SRW1',markersize=12)
-    # ax_edge.plot(X[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
+    for i,algo in enumerate(algo_list):
+        ax_edge.plot(X[i], Y[i], c=color_list[i], marker=marker_list[i], label=algo, markersize=12)
+    # ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
+    # ax_edge.plot(X[1], Y[1], c='red', marker='o', label='SRW1',markersize=12)
+    # # ax_edge.plot(X[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
     # ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
     #ax_edge.set_xlim(0.15,1.1)
     ax_edge.set_ylim(0,20)
@@ -87,16 +89,18 @@ def make_plot_edge (X,Y,filename, title_info, save):
 
 
 
-def make_plot_query (X,Y,filename, title_info, save):
+def make_plot_query (X,Y,filename, title_info, algo_list, marker_list, color_list, save):
 
     #scatter plot
     fig, ax_edge = plt.subplots()
 
-    ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
-    ax_edge.plot(X[1], Y[1], c='red', marker='o', label='SRW1',markersize=12)
-    # ax_edge.plot(X[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
+    for i,algo in enumerate(algo_list):
+        ax_edge.plot(X[i], Y[i], c=color_list[i], marker=marker_list[i], label=algo, markersize=12)
+    # ax_edge.plot(X[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
+    # ax_edge.plot(X[1], Y[1], c='red', marker='o', label='SRW1',markersize=12)
+    # # ax_edge.plot(X[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
     # ax_edge.plot(X[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
-    #ax_edge.set_xlim(0.15,1.1)
+    ax_edge.set_xlim(0.15,1.7)
     ax_edge.set_ylim(0,20)
     ax_edge.legend(loc='upper right',fontsize=18)
     #add x and y labels
@@ -111,19 +115,21 @@ def make_plot_query (X,Y,filename, title_info, save):
     plt.show()
     timestr = time.strftime("%Y%m%d-%H%M%S")
     if (save):
-        fig.savefig("output/plots/baseline_comparison/"+filename+timestr+".eps",format='eps',bbox_inches="tight")
+        fig.savefig("output/plots/baseline_comparison/query/"+filename+timestr+".eps",format='eps',bbox_inches="tight")
 
 
-def make_plot_vertex(Z,Y,filename, title_info, save):
+def make_plot_vertex(Z,Y,filename, title_info, algo_list, marker_list, color_list, save):
 
     #scatter plot
     fig, ax_vertex = plt.subplots()
 
-    ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='SEC',markersize=12)
-    ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
-    ax_vertex.plot(Z[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
-    ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
-    ax_vertex.set_xlim(1,8)
+    for i,algo in enumerate(algo_list):
+        ax_vertex.plot(Z[i], Y[i], c=color_list[i], marker=marker_list[i], label=algo, markersize=12)
+    # ax_vertex.plot(Z[1], Y[1], c='red', marker='o', label='SEC',markersize=12)
+    # ax_vertex.plot(Z[2], Y[2], c='red', marker='^', label='SERWC',markersize=12)
+    # ax_vertex.plot(Z[3], Y[3], c='red', marker='D', label='UESS',markersize=12)
+    # ax_vertex.plot(Z[0], Y[0], c='blue', marker='s', label='TETRIS',markersize=12)
+    # ax_vertex.set_xlim(1,8)
     ax_vertex.set_ylim(0,15)
     ax_vertex.legend(loc='upper right',fontsize=18)
     #add x and y labels
@@ -144,22 +150,21 @@ def make_plot_vertex(Z,Y,filename, title_info, save):
         fig.savefig("output/plots/comparison/"+filename+timestr+".eps",format='eps',bbox_inches="tight")
 
 
-def plot_comparison(data_dir, filename, title_info, save=True):
+def plot_comparison(data_dir, filename, title_info, algo_list, marker_list, color_list, save=True):
 
-    X = []
-    Y= []
-    Z = []
-    W = []
-
+    edges_list = []
+    medians_list= []
+    vertices_list = []
+    query_list = []
     for i,dir in enumerate(data_dir):
-        tempX, tempY, tempZ, tempW = populate_data(dir)
-        X.append(tempX)
-        Y.append(tempY)
-        Z.append(tempZ)
-        W.append(tempW)
-    # make_plot_edge (X,Y,filename, title_info, save)
-    # make_plot_vertex(Z,Y,filename, title_info, save)
-    make_plot_query (W,Y,filename, title_info, save)
+        tempEdges, tempMedians, tempVertices, tempQuery = populate_data(dir)
+        edges_list.append(tempEdges)
+        medians_list.append(tempMedians)
+        vertices_list.append(tempVertices)
+        query_list.append(tempQuery)
+    # make_plot_edge (edges_list,medians_list,filename, title_info, algo_list, marker_list, color_list, save)
+    # make_plot_vertex(vertices_list,medians_list,filename, title_info, algo_list, marker_list, color_list, save)
+    make_plot_query (query_list,medians_list,filename, title_info, algo_list, marker_list, color_list, save)
 
 if __name__ == "__main__":
 
@@ -178,31 +183,34 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 24M edges, 3M vertices")
 
-    f_name = "soc-orkut"
-    file_name.append(f_name)
-    # title_info.append(f_name + ": 3M vertices")
-    title_info.append(f_name + ": 31M edges")
-
+    # f_name = "soc-orkut"
+    # file_name.append(f_name)
+    # # title_info.append(f_name + ": 3M vertices")
+    # title_info.append(f_name + ": 31M edges")
+    #
     # f_name = "soc-sinaweibo"
     # file_name.append(f_name)
     # title_info.append(f_name + ": 260M edges")
     #
-    # f_name = "soc-twitter-konect"
-    # file_name.append(f_name)
-    # title_info.append(f_name + ": 1.2B edges, 41M vertices")
-    #
-    # f_name = "soc-friendster"
-    # file_name.append(f_name)
-    # title_info.append(f_name + ": 1.8B edges, 65M vertices")
+    f_name = "soc-twitter-konect"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 1.2B edges, 41M vertices")
 
-    algo_list = []
+    f_name = "soc-friendster"
+    file_name.append(f_name)
+    title_info.append(f_name + ": 1.8B edges, 65M vertices")
 
-    algo_list.append("TETRIS")
-    algo_list.append("SRW1")
+    # Potential list of algorithms: TETRIS,SRW1,VertexMCMC,UESS,SEC,SERWC
+    #algo_list = ["TETRIS","SRW1","VertexMCMC","UESS","SEC","SERWC"]
+    algo_list = ["TETRIS","SRW1","VertexMCMC"]
+    marker_list = ['s','o','D','*','^','p']
+    color_list = ['blue','green','yellow','red','red','red']
+    save = True
+    input_dir = "output/plot_data/baseline_TETRIS_SRW_MCMC/"
 
     for i,file in enumerate(file_name):
         data_dir = []
         out_filename = file + "-comparison-"
         for j,algo in enumerate(algo_list):
-            data_dir.append("output/plot_data/new_baseline/"+file+".edges.csr/"+algo+tag)
-        plot_comparison(data_dir, out_filename, title_info[i])
+            data_dir.append(input_dir+file+".edges.csr/"+algo+tag)
+        plot_comparison(data_dir, out_filename, title_info[i], algo_list, marker_list, color_list, save)

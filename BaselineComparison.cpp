@@ -89,6 +89,25 @@ int main(int argc, char *argv[]) {
          */
         for (auto sparsification_prob : cfp.sparsification_prob) {
             for (auto seed_count: cfp.seed_count) {
+
+                params.seed_count = seed_count;
+                params.seed_vertices.clear();
+
+                /**
+                 * We fix the seed vertices and run for params.no_of_repeat many iterations with the
+                 * seed vertex remaining fixed.
+                 * We just need to
+                 * sample uniform random seed vertex from the entire graph.
+                 * THIS IS THE NORMAL MODE IN WHICH ALL BASELINE AND OUR
+                 * ALGORITHMS ARE EXECUTED
+                 */
+                VertexIdx n = cg.nVertices;
+                std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
+                for (VertexIdx sC = 0; sC < params.seed_count; sC++) {
+                    VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
+                    params.seed_vertices.emplace_back(seed);
+                }
+
                 for (auto algo_name : cfp.algo_names) {
                     /**
                      * Update parameters for this particular run
@@ -98,23 +117,6 @@ int main(int argc, char *argv[]) {
                     params.walk_length = cg.nEdges * sparsification_prob; // g.nEdges is twice the number of edges
                     params.subsample_size = params.walk_length * cfp.subsample_prob;
                     EdgeIdx triangle_count = cfp.triangle_count[i];
-                    params.seed_count = seed_count;
-                    params.seed_vertices.clear();
-
-                    /**
-                     * We fix the seed vertices and run for params.no_of_repeat many iterations with the
-                     * seed vertex remaining fixed.
-                     * We just need to
-                     * sample uniform random seed vertex from the entire graph.
-                     * THIS IS THE NORMAL MODE IN WHICH ALL BASELINE AND OUR
-                     * ALGORITHMS ARE EXECUTED
-                     */
-                    VertexIdx n = cg.nVertices;
-                    std::uniform_int_distribution<VertexIdx> dist_seed_vertex(0, n - 1);
-                    for (VertexIdx sC = 0; sC < params.seed_count; sC++) {
-                        VertexIdx seed = dist_seed_vertex(mt); // TODO: verify randomness
-                        params.seed_vertices.emplace_back(seed);
-                    }
 
                     if (algo_name == "TETRIS") {                     // Our Algorithm
                         TriangleEstimator(&cg, params, triangle_count, TETRIS);
