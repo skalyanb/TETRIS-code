@@ -1,0 +1,44 @@
+###### The following parameters are required:
+# input_files: relative path of the input files, comma seperated.
+# triangle_count: the actual number of triangles in each graph, the order must be same as the input_files.
+# seed count: the number of seeds. Multiple options can be provided with comma seperated.
+# sparsification_prob: Multiple options can be provided with comma seperated.
+# subsample_prob: how many edges to sample from edges collected by random walks
+# no_of_repeats: integer. Default value is 1.
+# algo_names: Multiple options can be provided with comma seperated.
+# print_to_console: default value true
+# print_to_file: default value false
+# degree_bin_seed=false  ; if true, then the seed vertex will be randomly selected accorss various degree bins
+##### Some example graphs and their true triangle count:
+# soc-flickr.edges = 58771288
+# soc-flickr-und.edges = 548658705
+# soc-friendster.edges = 4173724142
+# soc-livejournal.edges = 83552703
+# soc-orkut.edges = 524643952
+# soc-sinaweibo.edges = 212977684
+# soc-twitter-konect.edges = 34824916864
+# socfb-A-anon.edges = 55606428
+# web-indochina-2004-all.edges = 60115561372
+# web-cc12-PayLevelDomain.edges = 29923075742
+##### Algo_names
+# Our algorithm: TETRIS
+#
+input_files=graphs/CSR/soc-orkut.edges.csr
+triangle_count=524643952
+seed_count=1
+subsample_prob=0.05
+no_of_repeats=10
+algo_names=TETRIS
+sparsification_prob=0.01,0.0125
+# the trialing "/" is important in the out_directory
+out_directory=output/
+print_to_console=true
+print_to_file=false
+degree_bin_seed=false
+# the following is m for TETRIS and SRW and square sum of degrees for VertexMCMC.
+normalization_count_available=false
+# the following two (CSS and NB) are specific parameters for the SRW problem. It can be ignored while executing other algorithms.
+# The default state is false for these two parameters
+CSS=true
+NB=true
+
