@@ -60,6 +60,8 @@ def plot_degree_bin (bin_dir, out_filename, title_info):
 
 
     fig, ax = plt.subplots()
+    plt.subplots_adjust(bottom = 0.2, top = 0.8, right = 0.95, left = 0.1, hspace = 0.38)
+
     ax.bar(x[0], median_err[0], width=barWidth, color='b',  edgecolor= "black",label="Gender")
     ax.bar(x[1], median_err[1], width=barWidth, color='b',  edgecolor= "black",label="Type")
     ax.bar(x[2], median_err[2], width=barWidth, color='b',  edgecolor= "black",label="Type")
@@ -67,7 +69,7 @@ def plot_degree_bin (bin_dir, out_filename, title_info):
     #rects4 = ax.bar(x_4, median_err[4], width=barWidth, color='b',  edgecolor= "black",label="Type")
 
     y_min = 0
-    y_max = 5
+    y_max = 2
     ax.set_ylim(y_min,y_max)
 
     # y_ind = [i/2 for i in range(4)]
@@ -82,7 +84,7 @@ def plot_degree_bin (bin_dir, out_filename, title_info):
     ind = [x[i][1] for i in range(num_bin)]
     ax.set_xticks(ind)
     ax.tick_params(axis="y", labelsize=18)
-    ax.set_xticklabels(('deg$\in [1,10]$', 'deg$\in [10,10^2]$','deg$\in [10^2,10^3]$', 'deg$\in [10^3,10^4]$'),fontsize=11)
+    ax.set_xticklabels(('deg$\in [1,10]$', 'deg$\in [10,10^2]$','deg$\in [10^2,10^3]$', 'deg$\in [10^3,10^4]$'),fontsize=18)
     ax.set_xlabel('Degree based buckets',fontsize=24)
     plt.show()
 
@@ -118,9 +120,9 @@ if __name__ == "__main__":
     # file_name.append(f_name)
     # title_info.append(f_name + ": 260M edges, 58M vertices")
     #
-    f_name = "soc-twitter-konect"
-    file_name.append(f_name)
-    title_info.append(f_name + ": 2.4B edges")
+    # f_name = "soc-twitter-konect"
+    # file_name.append(f_name)
+    # title_info.append(f_name + ": 2.4B edges")
     no_bin = 4
 
     # f_name = "soc-friendster"

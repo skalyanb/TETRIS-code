@@ -20,21 +20,11 @@
 
 using namespace Escape;
 
-// Usage:
-// ./SubgraphCount input_file_path no_of_repeats sparsification_prob algo_code
-// input_file_path: relative path to the input file in escape format
-// out_direcory: path to the output directory . The output filename is created by the algorithm
-// no_of_repeats: no of times the algo will be repeated
-// seed_count: the number of start vertices for the rndom walk based algorithms
-// sparsification_prob: how much of the graph we want to see? Length of the random walk
-//                      is  set as sum_of_degree*sparification_prob.
-// algo_code: 1 for our algo, 2 for SERWC....
+/**
+ *Usage: ./SubgraphCount script_file
+ * For a sample script file and its description, see the config/flickr-baseline.txt
+ */
 
-// The true triangle count: get by running exact count algorithm
-//soc-orkut ==524,643,952; soc-flicks == 58,771,288; soc-flickr-und = 548,658,705; livejournal = 83,552,703;
-// socfb-A-anon =  55,606,428 soc-sinaweibo.edges = 212,977,684
-// soc-friendster.edges = 4,173,724,142
-// soc-twitter-konect.edges =  34,824,916,864
 
 int main(int argc, char *argv[]) {
 

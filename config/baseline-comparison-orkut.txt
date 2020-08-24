@@ -32,13 +32,13 @@
 # the following two (CSS and NB) are specific parameters for the SRW problem. It can be ignored while executing other algorithms.
 # The default state is false for these two parameters
 # CSS and NB
-input_files=graphs/CSR/soc-orkut.edges.csr,graphs/CSR/soc-sinaweibo.edges.csr
-triangle_count=524643952,212977684
+input_files=graphs/CSR/soc-orkut.edges.csr
+triangle_count=524643952
 seed_count=1
 subsample_prob=0.05
 no_of_repeats=100
-algo_names=UESS,SEC,SERWC
-sparsification_prob=0.0025,0.0050,0.0075,0.01,0.0125,0.015
+algo_names=TETRIS,VertexMCMC,SRW1
+sparsification_prob=0.03
 out_directory=output/plot_data/baseline_TETRIS_SRW_MCMC/
 print_to_console=true
 print_to_file=true
