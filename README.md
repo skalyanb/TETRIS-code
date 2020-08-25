@@ -55,3 +55,11 @@ Usage: ./SubgraphCount script_file
 
 The script_file contains all the input configuration parameters. 
 See sample_config.txt for parameter details. 
+
+To compare the performance of TETRIS, we need an exact estimate of
+the number of triangles in the input graph. To compute this
+count, use ExactCount.out. 
+
+Usage: ./ExactCount.out input_file_name
+
+The input_file is expected to be in the .edges format.
